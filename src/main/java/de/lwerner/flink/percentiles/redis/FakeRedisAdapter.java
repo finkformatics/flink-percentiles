@@ -1,5 +1,7 @@
 package de.lwerner.flink.percentiles.redis;
 
+import java.util.ArrayList;
+
 /**
  * A fake redis adapter, which simulates the behaviour on single node environments
  */
@@ -17,7 +19,7 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     /**
      * k
      */
-    private long k;
+    private ArrayList<Long> k;
     /**
      * t
      */
@@ -31,6 +33,15 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
      */
     private float result;
 
+    /**
+     * Constructor.
+     *
+     * Initializes k array list
+     */
+    private FakeRedisAdapter() {
+        k = new ArrayList<>();
+    }
+
     @Override
     public long getN() {
         return n;
@@ -42,13 +53,33 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     }
 
     @Override
-    public long getK() {
-        return k;
+    public void addK(long k) {
+        this.k.add(k);
     }
 
     @Override
-    public void setK(long k) {
-        this.k = k;
+    public long[] getAllK() {
+        long[] kValues = new long[k.size()];
+
+        for (int i = 0; i < k.size(); i++) {
+            kValues[i] = k.get(i);
+        }
+
+        return kValues;
+    }
+
+    @Override
+    public long getNthK(int n) {
+        if (k.size() >= n) {
+            return k.get(n - 1);
+        }
+
+        return 0L;
+    }
+
+    @Override
+    public void setNthK(long k, int n) {
+        this.k.set(n - 1, k);
     }
 
     @Override
@@ -84,6 +115,14 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     @Override
     public void close() {
         // Do nothing
+    }
+
+    @Override
+    public void reset() {
+        setN(0);
+        setResult(0);
+        setResultFound(false);
+        setT(0);
     }
 
     /**

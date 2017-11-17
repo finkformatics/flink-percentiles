@@ -34,18 +34,35 @@ public abstract class AbstractRedisAdapter {
     public abstract void setN(long n);
 
     /**
-     * Gets the k value (rank of the searched number)
+     * Adds a new k value
      *
-     * @return k
+     * @param k new k value
      */
-    public abstract long getK();
+    public abstract void addK(long k);
 
     /**
-     * Sets the k value
+     * Get the whole k array
      *
-     * @param k new k
+     * @return all k
      */
-    public abstract void setK(long k);
+    public abstract long[] getAllK();
+
+    /**
+     * Get the nth k
+     *
+     * @param n starting at 1
+     *
+     * @return nth k
+     */
+    public abstract long getNthK(int n);
+
+    /**
+     * Set the nth k
+     *
+     * @param k k
+     * @param n nth
+     */
+    public abstract void setNthK(long k, int n);
 
     /**
      * Gets the T value (threshold of ending the algorithm)
@@ -93,6 +110,11 @@ public abstract class AbstractRedisAdapter {
      * Closes this adapter and all dependencies
      */
     public abstract void close();
+
+    /**
+     * Resets this adapter
+     */
+    public abstract void reset();
 
     /**
      * Factory method, initiates adapter by given properties, which hold the adapter name

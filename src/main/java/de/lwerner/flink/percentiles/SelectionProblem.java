@@ -45,9 +45,10 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         // Create a redis adapter
         AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(properties);
+        redisAdapter.reset();
 
         // Initiate the values on redis
-        redisAdapter.setK(getFirstK());
+        redisAdapter.addK(getFirstK());
         redisAdapter.setN(getSource().getCount());
         redisAdapter.setT(getT());
 
@@ -103,7 +104,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
                 .collect();
 
         // Get the current k value from redis
-        long remainingK = redisAdapter.getK();
+        long remainingK = redisAdapter.getNthK(1);
 
         // Calculate sequentially
         float result;

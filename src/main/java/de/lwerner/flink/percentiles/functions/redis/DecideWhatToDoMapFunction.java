@@ -35,7 +35,7 @@ public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple3<Long, Long
 
     @Override
     public DecisionModel map(Tuple3<Long, Long, Long> t) throws Exception {
-        long k = redisAdapter.getK();
+        long k = redisAdapter.getNthK(1);
         long n = redisAdapter.getN();
 
         boolean foundResult = false;

@@ -40,7 +40,7 @@ public class TerminationCriterionFilterFunction extends RichFilterFunction<Decis
         long k = decisionModel.getK();
         long n = decisionModel.getN();
 
-        redisAdapter.setK(k);
+        redisAdapter.setNthK(k, 1);
         redisAdapter.setN(n);
 
         return !decisionModel.isFoundResult() && n > threshold;
