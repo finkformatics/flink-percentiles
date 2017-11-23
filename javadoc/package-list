@@ -1,0 +1,8 @@
+de.lwerner.flink.percentiles
+de.lwerner.flink.percentiles.data
+de.lwerner.flink.percentiles.functions.join
+de.lwerner.flink.percentiles.functions.redis
+de.lwerner.flink.percentiles.model
+de.lwerner.flink.percentiles.redis
+de.lwerner.flink.percentiles.timeMeasurement
+de.lwerner.flink.percentiles.util
