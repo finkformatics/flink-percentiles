@@ -1,5 +1,7 @@
 package de.lwerner.flink.percentiles.data;
 
+import de.lwerner.flink.percentiles.ResultReport;
+
 import java.io.IOException;
 
 /**
@@ -12,12 +14,12 @@ import java.io.IOException;
 public interface SinkInterface {
 
     /**
-     * Processes a float result (k-th smallest element of a set of floats)
+     * Processes a result report
      *
-     * @param result the result
+     * @param resultReport the result report
      *
      * @throws IOException sink can be an IO operation, can through an exception though
      */
-    void processResult(float result) throws IOException;
+    void processResult(ResultReport resultReport) throws IOException;
 
 }

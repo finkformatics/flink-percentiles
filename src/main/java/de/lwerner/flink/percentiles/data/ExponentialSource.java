@@ -26,6 +26,10 @@ public class ExponentialSource implements SourceInterface {
      * Number of elements to generate
      */
     private final long n;
+    /**
+     * The cached values
+     */
+    private List<Float> values;
 
     /**
      * Constructor, sets env and n
@@ -44,15 +48,27 @@ public class ExponentialSource implements SourceInterface {
     }
 
     @Override
-    public DataSet<Tuple1<Float>> getDataSet() {
-        List<Float> values = new ArrayList<>();
-        Random rnd = new Random();
-        for (long i = 0; i < n; i++) {
-            values.add(-(float)Math.log(1 - rnd.nextFloat()));
+    public DataSet<Tuple1<Float>> getDataSet() throws Exception {
+        return env.fromCollection(getValues())
+                .map(new InputToTupleMapFunction());
+    }
+
+    @Override
+    public List<Float> getValues() throws Exception {
+        if (values == null) {
+            values = new ArrayList<>();
+            Random rnd = new Random();
+            for (long i = 0; i < n; i++) {
+                values.add(-(float)Math.log(1 - rnd.nextFloat()));
+            }
         }
 
-        return env.fromCollection(values)
-                .map(new InputToTupleMapFunction());
+        return values;
+    }
+
+    @Override
+    public ExecutionEnvironment getEnv() {
+        return env;
     }
     
 }

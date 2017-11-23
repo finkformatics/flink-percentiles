@@ -11,7 +11,7 @@ import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.*;
 import org.apache.flink.api.java.utils.ParameterTool;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
@@ -23,6 +23,16 @@ import java.util.*;
 public class SelectionProblem extends AbstractSelectionProblem {
 
     /**
+     * Should we use the sink?
+     */
+    private boolean useSink;
+
+    /**
+     * Store result
+     */
+    private float result;
+
+    /**
      * SelectionProblem constructor, sets the required values
      *
      * @param source the data source
@@ -31,7 +41,31 @@ public class SelectionProblem extends AbstractSelectionProblem {
      * @param t serial computation threshold
      */
     public SelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
+        this(source, sink, k, t, false);
+    }
+
+    /**
+     * SelectionProblem constructor, sets the required values
+     *
+     * @param source the data source
+     * @param sink the data sink
+     * @param k the ranks
+     * @param t serial computation threshold
+     * @param useSink directly use sink?
+     */
+    public SelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t, boolean useSink) {
         super(source, sink, k, t);
+
+        this.useSink = useSink;
+    }
+
+    /**
+     * Get result
+     *
+     * @return result
+     */
+    public float getResult() {
+        return result;
     }
 
     /**
@@ -42,6 +76,8 @@ public class SelectionProblem extends AbstractSelectionProblem {
     public void solve() throws Exception {
         // Holds important information just as how to connect to redis
         AppProperties properties = AppProperties.getInstance();
+
+        getTimer().startTimer();
 
         // Create a redis adapter
         AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(properties);
@@ -59,7 +95,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         // Create partitions, calculate medians and count values on each partition
         DataSet<Tuple2<Float, Long>> mediansCountsAndN = initial
-                .partitionByHash(0)
+                .partitionCustom(new RandomPartitioner(), 0)
                 .sortPartition(0, Order.ASCENDING)
                 .mapPartition(new MedianAndCountMapPartitionFunction());
 
@@ -97,28 +133,35 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // Iterate, until finish condition is met
         DataSet<Tuple1<Float>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        // Data sink for the remaining values
-        List<Float> remainingValues = remaining
-                .map(new RemainingValuesMapFunction())
-                .filter(new RemainingValuesFilterFunction())
-                .collect();
+        // Solve sequentially
+        DataSet<Float> resultSet = remaining
+                .partitionCustom(new RandomPartitioner(), 0).setParallelism(1)
+                .sortPartition(0, Order.ASCENDING).setParallelism(1)
+                .mapPartition(new SequentiallySolve()).setParallelism(1);
 
-        // Get the current k value from redis
-        long remainingK = redisAdapter.getNthK(1);
+        List<Float> resultList = resultSet.collect();
 
-        // Calculate sequentially
         float result;
-        if (!remainingValues.isEmpty()) {
-            Collections.sort(remainingValues);
-            result = remainingValues.get((int)remainingK - 1);
-        } else {
+        if (resultList.isEmpty()) {
             result = redisAdapter.getResult();
+        } else {
+            result = resultList.get(0);
         }
 
         redisAdapter.close();
 
-        // Sink for the result
-        getSink().processResult(result);
+        getTimer().stopTimer();
+
+        if (useSink) {
+            ResultReport resultReport = new ResultReport();
+            resultReport.setK(getK());
+            resultReport.setResults(new float[]{result});
+
+            // Sink for the result
+            getSink().processResult(resultReport);
+        } else {
+            this.result = result;
+        }
     }
 
     /**

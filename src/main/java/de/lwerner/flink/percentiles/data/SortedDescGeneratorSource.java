@@ -7,16 +7,15 @@ import org.apache.flink.api.java.tuple.Tuple1;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
- * Class GeneratorSource
+ * Class SortedDescGeneratorSource
  *
- * Defines a data source which generates random values
+ * Defines a data source which generates descending sorted values
  *
  * @author Lukas Werner
  */
-public class GeneratorSource implements SourceInterface {
+public class SortedDescGeneratorSource implements SourceInterface {
 
     /**
      * The flink execution environment
@@ -37,7 +36,7 @@ public class GeneratorSource implements SourceInterface {
      * @param env the flink env
      * @param n the value count
      */
-    public GeneratorSource(ExecutionEnvironment env, long n) {
+    public SortedDescGeneratorSource(ExecutionEnvironment env, long n) {
         this.env = env;
         this.n = n;
     }
@@ -57,9 +56,8 @@ public class GeneratorSource implements SourceInterface {
     public List<Float> getValues() throws Exception {
         if (values == null) {
             values = new ArrayList<>();
-            Random rnd = new Random();
-            for (long i = 0; i < n; i++) {
-                values.add(rnd.nextFloat());
+            for (long i = n - 1; i >= 0; i--) {
+                values.add(i * 0.00001f);
             }
         }
 

@@ -1,6 +1,6 @@
 package de.lwerner.flink.percentiles.data;
 
-import org.apache.flink.api.java.ExecutionEnvironment;
+import de.lwerner.flink.percentiles.ResultReport;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,20 +28,26 @@ public class HdfsSink implements SinkInterface {
      * Result file path on hdfs
      */
     private final String path;
+    /**
+     * Full report wanted?
+     */
+    private boolean full;
 
     /**
      * Constructor, sets env and path
      *
      * @param fileSystemDefaultName fs default name
      * @param path the hdfs path
+     * @param full full report?
      */
-    public HdfsSink(String fileSystemDefaultName, String path) {
+    public HdfsSink(String fileSystemDefaultName, String path, boolean full) {
         this.fileSystemDefaultName = fileSystemDefaultName;
         this.path = path;
+        this.full = full;
     }
 
     @Override
-    public void processResult(float result) throws IOException {
+    public void processResult(ResultReport resultReport) throws IOException {
         URI uri = URI.create(path);
         Path path = new Path(uri);
 
@@ -53,7 +59,11 @@ public class HdfsSink implements SinkInterface {
         FSDataOutputStream out = dfs.create(path);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
 
-        writer.write("" + result);
+        if (full) {
+            writer.write(resultReport.toString());
+        } else {
+            writer.write("" + resultReport.getResults()[0]);
+        }
 
         writer.close();
     }

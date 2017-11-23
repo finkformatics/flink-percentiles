@@ -1,6 +1,7 @@
 package de.lwerner.flink.percentiles;
 
-import de.lwerner.flink.percentiles.data.*;
+import de.lwerner.flink.percentiles.data.SinkInterface;
+import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.util.ParamHelper;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -8,66 +9,76 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Abstract class for generalizing all the repeated work.
+ * Abstract percentile algorithm class to generalize repeated work.
  *
  * @author Lukas Werner
  */
-public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
+public abstract class AbstractPercentile extends AbstractAlgorithm {
 
     /**
-     * The ranks of the searched numbers
+     * Percent value
      */
-    private long[] k;
+    private int p;
 
     /**
-     * A threshold at which we can compute serially
+     * Threshold value
      */
     private long t;
 
     /**
-     * AbstractSelectionProblem constructor, sets the required values
-     *
-     * @param source the data source
-     * @param sink the data sink
-     * @param k the ranks
-     * @param t serial computation threshold
+     * k
      */
-    protected AbstractSelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
+    private int k;
+
+    /**
+     * Constructor to set the required values;
+     *
+     * @param source data source
+     * @param sink data sink
+     * @param p percentage value
+     * @param t threshold value
+     */
+    protected AbstractPercentile(SourceInterface source, SinkInterface sink, int p, long t) {
         super(source, sink);
 
-        this.k = k;
+        this.p = p;
         this.t = t;
     }
 
     /**
-     * Get the k array
+     * Get the percentage value
      *
-     * @return k array
+     * @return the percentage value
      */
-    public long[] getK() {
+    public int getP() {
+        return p;
+    }
+
+    /**
+     * Get the threshold value
+     *
+     * @return the threshold value
+     */
+    public long getT() {
+        return t;
+    }
+
+    /**
+     * Get the k value
+     *
+     * @return k value
+     */
+    public int getK() {
         return k;
     }
 
     /**
-     * Get the first k value in array
+     * Set the k value
      *
-     * @return first k
+     * @param k k value
      */
-    public long getFirstK() {
-        if (k.length < 1) {
-            return -1;
-        }
-
-        return k[0];
-    }
-
-    /**
-     * Get the t value
-     *
-     * @return t
-     */
-    public long getT() {
-        return t;
+    public void setK(int k) {
+        this.k = k;
     }
 
     /**
@@ -75,7 +86,7 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
      *
      * @param clazz the class to initiate
      * @param params the param tool
-     * @param k the k values
+     * @param p the p value
      *
      * @param <T> the type of the class to instantiate
      *
@@ -86,7 +97,7 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
      * @throws InvocationTargetException if the target isn't able to be invoked
      * @throws InstantiationException if we couldn't instantiate
      */
-    public static <T extends AbstractSelectionProblem> T factory(Class<T> clazz, ParameterTool params, long[] k) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static <T extends AbstractPercentile> T factory(Class<T> clazz, ParameterTool params, int p) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         long n = Long.valueOf(params.getRequired("count"));
@@ -97,20 +108,14 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
         SourceInterface source = ParamHelper.getSourceFromParams(params, env, n);
         SinkInterface sink = ParamHelper.getSinkFromParams(params);
 
-        for (long kVal: k) {
-            if (kVal < 1 || kVal > source.getCount()) {
-                throw new IllegalArgumentException("k must be between 1 and the value count");
-            }
-        }
-
         long t = Long.valueOf(params.get("serial-threshold", "1000"));
 
         if (t < 100) {
             throw new IllegalArgumentException("Please provide a serial threshold of at least 100");
         }
 
-        return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, long[].class, long.class)
-                .newInstance(source, sink, k, t);
+        return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, int.class, long.class)
+                .newInstance(source, sink, p, t);
     }
 
 }

@@ -1,9 +1,12 @@
 package de.lwerner.flink.percentiles.data;
 
 import de.lwerner.flink.percentiles.functions.redis.InputToTupleMapFunction;
+import de.lwerner.flink.percentiles.functions.redis.RemainingValuesMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
+
+import java.util.List;
 
 /**
  * Class HdfsSource
@@ -31,40 +34,44 @@ public class HdfsSource implements SourceInterface {
     /**
      * The value count (cached for multiple accesses)
      */
-    private long count = -1;
+    private long count;
 
     /**
      * Constructor, sets env and path
      *
      * @param env the flink env
      * @param path the hdfs path
+     * @param count number of values
      */
-    public HdfsSource(ExecutionEnvironment env, String path) {
+    public HdfsSource(ExecutionEnvironment env, String path, long count) {
         this.env = env;
         this.path = path;
+        this.count = count;
     }
 
     @Override
     public long getCount() {
-        try {
-            if (count == -1) {
-                count = getDataSet().count();
-            }
-
-            return count;
-        } catch (Exception e) {
-            return 0L;
-        }
+        return count;
     }
 
     @Override
-    public DataSet<Tuple1<Float>> getDataSet() {
+    public DataSet<Tuple1<Float>> getDataSet() throws Exception {
         if (dataSet == null) {
             dataSet = env.readFileOfPrimitives(path, Float.class)
                     .map(new InputToTupleMapFunction());
         }
 
         return dataSet;
+    }
+
+    @Override
+    public List<Float> getValues() throws Exception {
+        return getDataSet().map(new RemainingValuesMapFunction()).collect();
+    }
+
+    @Override
+    public ExecutionEnvironment getEnv() {
+        return env;
     }
 
 }
