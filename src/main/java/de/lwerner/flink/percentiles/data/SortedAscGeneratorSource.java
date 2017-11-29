@@ -56,7 +56,7 @@ public class SortedAscGeneratorSource implements SourceInterface {
     public List<Float> getValues() throws Exception {
         if (values == null) {
             values = new ArrayList<>();
-            for (long i = 0; i < n; i++) {
+            for (long i = 1; i <= n; i++) {
                 values.add(i * 0.00001f);
             }
         }

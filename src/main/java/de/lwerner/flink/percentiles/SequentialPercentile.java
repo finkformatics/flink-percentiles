@@ -35,7 +35,7 @@ public class SequentialPercentile extends AbstractPercentile {
         List<Float> values = getSource().getValues();
 
         getTimer().startTimer();
-        float result = select(values, values.size() - 1, getK());
+        float result = select(values, values.size() - 1, getK() - 1);
         getTimer().stopTimer();
 
         ResultReport resultReport = new ResultReport();

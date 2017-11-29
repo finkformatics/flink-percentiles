@@ -56,7 +56,7 @@ public class SortedDescGeneratorSource implements SourceInterface {
     public List<Float> getValues() throws Exception {
         if (values == null) {
             values = new ArrayList<>();
-            for (long i = n - 1; i >= 0; i--) {
+            for (long i = n; i > 0; i--) {
                 values.add(i * 0.00001f);
             }
         }
