@@ -5,6 +5,8 @@ import redis.clients.jedis.Jedis;
 
 /**
  * Concrete Jedis access adapter class, uses JedisHelper to get and set values
+ *
+ * @author Lukas Werner
  */
 public class JedisRedisAdapter extends AbstractRedisAdapter {
 
@@ -87,6 +89,16 @@ public class JedisRedisAdapter extends AbstractRedisAdapter {
     @Override
     public void setResult(float result) {
         JedisHelper.setResult(jedis, result);
+    }
+
+    @Override
+    public int getNumberOfIterations() {
+        return JedisHelper.getNumberOfIterations(jedis);
+    }
+
+    @Override
+    public void setNumberOfIterations(int iterationCount) {
+        JedisHelper.setNumberOfIterations(jedis, iterationCount);
     }
 
     @Override

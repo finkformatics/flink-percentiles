@@ -23,19 +23,12 @@ public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple5<Integer, I
      */
     private double weightedMedian;
 
-    /**
-     * The iteration number
-     */
-    private int iterationNumber;
-
     @Override
     public void open(Configuration parameters) throws Exception {
         Collection<Tuple1<Double>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
         for (Tuple1<Double> t: weightedMedian) {
             this.weightedMedian = t.f0;
         }
-
-        iterationNumber = getIterationRuntimeContext().getSuperstepNumber();
     }
 
     @Override
@@ -46,8 +39,6 @@ public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple5<Integer, I
 
         int n = t.f4;
         int k = t.f3;
-
-        System.out.println("Decide Thread (ID: " + Thread.currentThread().getId() + ", Iteration: " + iterationNumber + "): (k, n) = (" + k + ", " + n + "), tuple: " + t);
 
         if (t.f0 < t.f3 && t.f3 <= t.f0 + t.f1) {
             foundResult = true;
@@ -61,8 +52,6 @@ public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple5<Integer, I
             n = t.f2;
             k -= t.f0 + t.f1;
         }
-
-        System.out.println("Decide Thread (ID: " + Thread.currentThread().getId() + ", Iteration: " + iterationNumber + "): (k, n) = (" + k + ", " + n + "), tuple: " + t);
 
         return new Tuple5<>(foundResult, keepLess, result, k, n);
     }

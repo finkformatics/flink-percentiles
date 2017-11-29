@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.data.*;
 import de.lwerner.flink.percentiles.functions.redis.*;
+import de.lwerner.flink.percentiles.math.QuickSelect;
 import de.lwerner.flink.percentiles.model.DecisionModel;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
@@ -33,6 +34,11 @@ public class SelectionProblem extends AbstractSelectionProblem {
     private float result;
 
     /**
+     * Number of iterations needed
+     */
+    private int iterationsNeeded = 0;
+
+    /**
      * SelectionProblem constructor, sets the required values
      *
      * @param source the data source
@@ -41,7 +47,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
      * @param t serial computation threshold
      */
     public SelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
-        this(source, sink, k, t, false);
+        this(source, sink, k, t, true);
     }
 
     /**
@@ -69,6 +75,15 @@ public class SelectionProblem extends AbstractSelectionProblem {
     }
 
     /**
+     * Get number of iterations needed
+     *
+     * @return iteration count
+     */
+    public int getIterationsNeeded() {
+        return iterationsNeeded;
+    }
+
+    /**
      * Solves the selection problem
      *
      * @throws Exception if anything goes wrong
@@ -87,6 +102,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
         redisAdapter.addK(getFirstK());
         redisAdapter.setN(getSource().getCount());
         redisAdapter.setT(getT());
+        redisAdapter.setNumberOfIterations(0);
 
         // Start iteration on initial data set
         IterativeDataSet<Tuple1<Float>> initial = getSource()
@@ -133,22 +149,25 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // Iterate, until finish condition is met
         DataSet<Tuple1<Float>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        // Solve sequentially
-        DataSet<Float> resultSet = remaining
-                .partitionCustom(new RandomPartitioner(), 0).setParallelism(1)
-                .sortPartition(0, Order.ASCENDING).setParallelism(1)
-                .mapPartition(new SequentiallySolve()).setParallelism(1);
+        List<Float> remainingList = remaining
+                .map(new RemainingValuesMapFunction())
+                .collect();
 
-        List<Float> resultList = resultSet.collect();
+        // Solve sequentially
+//        DataSet<Float> resultSet = remaining
+//                .partitionCustom(new RandomPartitioner(), 0).setParallelism(1)
+//                .sortPartition(0, Order.ASCENDING).setParallelism(1)
+//                .mapPartition(new SequentiallySolve()).setParallelism(1);
+
+//        List<Float> resultList = resultSet.collect();
 
         float result;
-        if (resultList.isEmpty()) {
+        if (remainingList.isEmpty()) {
             result = redisAdapter.getResult();
         } else {
-            result = resultList.get(0);
+            QuickSelect quickSelect = new QuickSelect();
+            result = quickSelect.select(remainingList, (int)redisAdapter.getNthK(1) - 1);
         }
-
-        redisAdapter.close();
 
         getTimer().stopTimer();
 
@@ -156,12 +175,17 @@ public class SelectionProblem extends AbstractSelectionProblem {
             ResultReport resultReport = new ResultReport();
             resultReport.setK(getK());
             resultReport.setResults(new float[]{result});
+            resultReport.setT(getT());
+            resultReport.setNumberOfIterations(redisAdapter.getNumberOfIterations());
 
             // Sink for the result
             getSink().processResult(resultReport);
         } else {
             this.result = result;
+            this.iterationsNeeded = redisAdapter.getNumberOfIterations();
         }
+
+        redisAdapter.close();
     }
 
     /**

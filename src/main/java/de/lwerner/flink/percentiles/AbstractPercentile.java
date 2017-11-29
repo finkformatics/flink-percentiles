@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
+import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.ParamHelper;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -108,10 +109,15 @@ public abstract class AbstractPercentile extends AbstractAlgorithm {
         SourceInterface source = ParamHelper.getSourceFromParams(params, env, n);
         SinkInterface sink = ParamHelper.getSinkFromParams(params);
 
-        long t = Long.valueOf(params.get("serial-threshold", "1000"));
+        long t = Long.valueOf(params.get("t", "1000"));
 
         if (t < 100) {
             throw new IllegalArgumentException("Please provide a serial threshold of at least 100");
+        }
+
+        String redisPassword = params.get("redis-password");
+        if (null != redisPassword) {
+            AbstractRedisAdapter.setRedisPassword(redisPassword);
         }
 
         return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, int.class, long.class)

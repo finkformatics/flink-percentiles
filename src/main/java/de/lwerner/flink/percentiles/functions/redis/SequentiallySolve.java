@@ -25,6 +25,11 @@ public class SequentiallySolve extends RichMapPartitionFunction<Tuple1<Float>, F
     }
 
     @Override
+    public void close() throws Exception {
+        redisAdapter.close();
+    }
+
+    @Override
     public void mapPartition(Iterable<Tuple1<Float>> values, Collector<Float> out) throws Exception {
         if (redisAdapter.getResultFound()) {
             return;

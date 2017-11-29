@@ -1,5 +1,6 @@
 package de.lwerner.flink.percentiles.util;
 
+import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -33,6 +34,10 @@ public class JedisHelper {
      * Redis key for the number of k
      */
     private static final String REDIS_KEY_NUMBER_OF_K = "flink-percentiles-number-of-k";
+    /**
+     * Redis key for the number of iterations
+     */
+    private static final String REDIS_KEY_NUMBER_OF_ITERATIONS = "flink-percentiles-number-of-iterations";
 
     /**
      * Build a Jedis object
@@ -43,7 +48,13 @@ public class JedisHelper {
      * @return the built Jedis object
      */
     public static Jedis getJedis(String host, int port) {
-        return new Jedis(host, port);
+        Jedis jedis = new Jedis(host, port);
+
+        if (AbstractRedisAdapter.getRedisPassword() != null) {
+            jedis.auth(AbstractRedisAdapter.getRedisPassword());
+        }
+
+        return jedis;
     }
 
     /**
@@ -105,6 +116,16 @@ public class JedisHelper {
      */
     public static void setNumberOfKValues(Jedis jedis, int numberOfKValues) {
         jedis.set(REDIS_KEY_NUMBER_OF_K, "" + numberOfKValues);
+    }
+
+    /**
+     * Set number of iterations
+     *
+     * @param jedis the Jedis object
+     * @param iterationCount new number of iterations
+     */
+    public static void setNumberOfIterations(Jedis jedis, int iterationCount) {
+        jedis.set(REDIS_KEY_NUMBER_OF_ITERATIONS, "" + iterationCount);
     }
 
     /**
@@ -181,6 +202,17 @@ public class JedisHelper {
      */
     public static void incrementNumberOfKValues(Jedis jedis) {
         setNumberOfKValues(jedis, getNumberOfKValues(jedis) + 1);
+    }
+
+    /**
+     * Get the number of iterations
+     *
+     * @param jedis the Jedis object
+     *
+     * @return the number of iterations
+     */
+    public static int getNumberOfIterations(Jedis jedis) {
+        return Integer.valueOf(jedis.get(REDIS_KEY_NUMBER_OF_ITERATIONS));
     }
 
 }

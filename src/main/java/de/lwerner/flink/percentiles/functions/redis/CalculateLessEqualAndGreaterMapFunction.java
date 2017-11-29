@@ -2,12 +2,10 @@ package de.lwerner.flink.percentiles.functions.redis;
 
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
-import de.lwerner.flink.percentiles.util.JedisHelper;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
-import redis.clients.jedis.Jedis;
 
 import java.util.Collection;
 

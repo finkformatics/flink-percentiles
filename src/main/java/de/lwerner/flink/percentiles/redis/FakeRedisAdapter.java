@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 /**
  * A fake redis adapter, which simulates the behaviour on single node environments
+ *
+ * @author Lukas Werner
  */
 public class FakeRedisAdapter extends AbstractRedisAdapter {
 
@@ -32,6 +34,10 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
      * result
      */
     private float result;
+    /**
+     * iteration count
+     */
+    private int iterationCount;
 
     /**
      * Constructor.
@@ -110,6 +116,16 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     @Override
     public void setResult(float result) {
         this.result = result;
+    }
+
+    @Override
+    public int getNumberOfIterations() {
+        return iterationCount;
+    }
+
+    @Override
+    public void setNumberOfIterations(int iterationCount) {
+        this.iterationCount = iterationCount;
     }
 
     @Override

@@ -4,6 +4,8 @@ package de.lwerner.flink.percentiles.util;
  * Enum PropertyName
  *
  * Holds the clearly defined property keys for the properties file. So we cope with spelling errors and such things.
+ *
+ * @author Lukas Werner
  */
 public enum PropertyName {
 

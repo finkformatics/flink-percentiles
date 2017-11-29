@@ -23,11 +23,58 @@ public class ResultReport {
     private long[] k;
 
     /**
+     * The input t value
+     */
+    private long t;
+
+    /**
+     * The number of iterations needed
+     */
+    private int numberOfIterations;
+
+    /**
      * Results from timer
      */
     private HashMap<String, Long> timerResults;
 
     /**
+     * Get the t value
+     *
+     * @return the t value
+     */
+    public long getT() {
+        return t;
+    }
+
+    /**
+     * Set the value for t
+     *
+     * @param t value for t
+     */
+    public void setT(long t) {
+        this.t = t;
+    }
+
+    /**
+     * Get the number of iterations
+     *
+     * @return number of iterations
+     */
+    public int getNumberOfIterations() {
+        return numberOfIterations;
+    }
+
+    /**
+     * Set the number of iterations
+     *
+     * @param numberOfIterations number of iterations
+     */
+    public void setNumberOfIterations(int numberOfIterations) {
+        this.numberOfIterations = numberOfIterations;
+    }
+
+    /**
+
      * The result values
      */
     private float[] results;
@@ -147,6 +194,18 @@ public class ResultReport {
                 sb.append((entry.getValue() / 1000.0));
                 sb.append("s\n");
             }
+        }
+
+        if (t > 0) {
+            sb.append("Per node value count threshold: ");
+            sb.append(t);
+            sb.append('\n');
+        }
+
+        if (numberOfIterations > 0) {
+            sb.append("Number of iterations: ");
+            sb.append(numberOfIterations);
+            sb.append('\n');
         }
 
         return sb.toString();

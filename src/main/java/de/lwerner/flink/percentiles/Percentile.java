@@ -48,6 +48,8 @@ public class Percentile extends AbstractPercentile {
         resultReport.setResults(new float[]{result});
         resultReport.setP(new int[]{getP()});
         resultReport.setK(new long[]{getK()});
+        resultReport.setT(getT());
+        resultReport.setNumberOfIterations(selectionProblem.getIterationsNeeded());
 
         getSink().processResult(resultReport);
     }

@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
+import de.lwerner.flink.percentiles.timeMeasurement.Timer;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 /**
@@ -10,6 +11,11 @@ import org.apache.flink.api.java.utils.ParameterTool;
  * @author Lukas Werner
  */
 public class ApproximativePercentile extends AbstractPercentile {
+
+    /**
+     * Approximative selection problem solver
+     */
+    private ApproximativeSelectionProblem approximativeSelectionProblem;
 
     /**
      * ApproximativePercentile constructor, sets the required values, here t is interpreted as the sample size.
@@ -21,11 +27,37 @@ public class ApproximativePercentile extends AbstractPercentile {
      */
     protected ApproximativePercentile(SourceInterface source, SinkInterface sink, int p, long t) {
         super(source, sink, p, t);
+
+        float np = source.getCount() / 100f;
+        setK((int)(np * p));
+
+        approximativeSelectionProblem = new ApproximativeSelectionProblem(source, sink, new long[]{getK()}, t, false);
+    }
+
+    /**
+     * Get the selection problem solver
+     *
+     * @return algorithm solver
+     */
+    public ApproximativeSelectionProblem getApproximativeSelectionProblem() {
+        return approximativeSelectionProblem;
     }
 
     @Override
     public void solve() throws Exception {
+        approximativeSelectionProblem.solve();
 
+        float result = approximativeSelectionProblem.getResult();
+
+        Timer timer = approximativeSelectionProblem.getTimer();
+
+        ResultReport resultReport = new ResultReport();
+        resultReport.setTimerResults(timer.getTimerResults());
+        resultReport.setResults(new float[]{result});
+        resultReport.setP(new int[]{getP()});
+        resultReport.setK(new long[]{getK()});
+
+        getSink().processResult(resultReport);
     }
 
     /**
@@ -40,8 +72,10 @@ public class ApproximativePercentile extends AbstractPercentile {
         ParameterTool params = ParameterTool.fromArgs(args);
 
         int p = Integer.valueOf(params.getRequired("p"));
+        long s = Long.valueOf(params.getRequired("sample-size"));
 
         ApproximativePercentile algorithm = factory(ApproximativePercentile.class, params, p);
+        algorithm.getApproximativeSelectionProblem().setSampleSize(s);
         algorithm.solve();
     }
 

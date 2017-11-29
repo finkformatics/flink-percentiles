@@ -3,12 +3,16 @@ package de.lwerner.flink.percentiles.redis;
 import de.lwerner.flink.percentiles.util.AppProperties;
 import de.lwerner.flink.percentiles.util.PropertyName;
 
+import java.io.Serializable;
+
 /**
  * Class AbstractRedisAdapter
  *
  * Holds the abstract methods for working with redis in this application and provides a factory method.
+ *
+ * @author Lukas Werner
  */
-public abstract class AbstractRedisAdapter {
+public abstract class AbstractRedisAdapter implements Serializable {
 
     /**
      * The Jedis adapter name
@@ -18,6 +22,11 @@ public abstract class AbstractRedisAdapter {
      * The adapter name for a redis simulation
      */
     private static final String REDIS_ADAPTER_FAKE = "fake";
+
+    /**
+     * Redis password, not necessarily required
+     */
+    private static String redisPassword = null;
 
     /**
      * Gets the N value (holds the current amount of elements, remaining in algorithm)
@@ -107,6 +116,20 @@ public abstract class AbstractRedisAdapter {
     public abstract void setResult(float result);
 
     /**
+     * Gets the iteration count
+     *
+     * @return iteration count
+     */
+    public abstract int getNumberOfIterations();
+
+    /**
+     * Sets the number of iterations
+     *
+     * @param iterationCount the iteration count
+     */
+    public abstract void setNumberOfIterations(int iterationCount);
+
+    /**
      * Closes this adapter and all dependencies
      */
     public abstract void close();
@@ -136,6 +159,24 @@ public abstract class AbstractRedisAdapter {
             default:
                 return FakeRedisAdapter.getInstance();
         }
+    }
+
+    /**
+     * Set the redis password
+     *
+     * @param redisPassword the redis password to set
+     */
+    public static void setRedisPassword(String redisPassword) {
+        AbstractRedisAdapter.redisPassword = redisPassword;
+    }
+
+    /**
+     * Get the redis password
+     *
+     * @return the redis password if set
+     */
+    public static String getRedisPassword() {
+        return redisPassword;
     }
 
 }
