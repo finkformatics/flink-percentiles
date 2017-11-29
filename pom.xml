@@ -203,7 +203,7 @@ under the License.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.lwerner.flink.percentiles.SelectionProblem</mainClass>
+                            <mainClass>de.lwerner.flink.percentiles.Percentile</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
