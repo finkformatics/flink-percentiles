@@ -1,6 +1,9 @@
 package de.lwerner.flink.percentiles.data;
 
 import de.lwerner.flink.percentiles.functions.redis.InputToTupleMapFunction;
+import de.lwerner.flink.percentiles.generation.FlushEvent;
+import de.lwerner.flink.percentiles.generation.FlushListener;
+import de.lwerner.flink.percentiles.generation.RandomGenerator;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
@@ -10,13 +13,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Class GeneratorSource
+ * Class RandomSource
  *
  * Defines a data source which generates random values
  *
  * @author Lukas Werner
  */
-public class GeneratorSource implements SourceInterface {
+public class RandomSource implements SourceInterface, FlushListener {
 
     /**
      * The flink execution environment
@@ -37,7 +40,7 @@ public class GeneratorSource implements SourceInterface {
      * @param env the flink env
      * @param n the value count
      */
-    public GeneratorSource(ExecutionEnvironment env, long n) {
+    public RandomSource(ExecutionEnvironment env, long n) {
         this.env = env;
         this.n = n;
     }
@@ -48,19 +51,17 @@ public class GeneratorSource implements SourceInterface {
     }
 
     @Override
-    public DataSet<Tuple1<Float>> getDataSet() throws Exception {
+    public DataSet<Tuple1<Float>> getDataSet() {
         return env.fromCollection(getValues())
                 .map(new InputToTupleMapFunction());
     }
 
     @Override
-    public List<Float> getValues() throws Exception {
+    public List<Float> getValues() {
         if (values == null) {
-            values = new ArrayList<>();
-            Random rnd = new Random();
-            for (long i = 0; i < n; i++) {
-                values.add(rnd.nextFloat());
-            }
+            RandomGenerator generator = new RandomGenerator((int)n);
+            generator.addFlushListener(this);
+            generator.generate(n);
         }
 
         return values;
@@ -71,4 +72,8 @@ public class GeneratorSource implements SourceInterface {
         return env;
     }
 
+    @Override
+    public void onFlush(FlushEvent event) {
+        values = event.getValues();
+    }
 }

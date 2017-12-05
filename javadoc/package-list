@@ -1,7 +1,9 @@
 de.lwerner.flink.percentiles
+de.lwerner.flink.percentiles.algorithm
 de.lwerner.flink.percentiles.data
 de.lwerner.flink.percentiles.functions.join
 de.lwerner.flink.percentiles.functions.redis
+de.lwerner.flink.percentiles.generation
 de.lwerner.flink.percentiles.math
 de.lwerner.flink.percentiles.model
 de.lwerner.flink.percentiles.redis

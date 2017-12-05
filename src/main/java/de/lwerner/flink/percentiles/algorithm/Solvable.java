@@ -1,4 +1,4 @@
-package de.lwerner.flink.percentiles;
+package de.lwerner.flink.percentiles.algorithm;
 
 /**
  * Defines a solvable algorithm

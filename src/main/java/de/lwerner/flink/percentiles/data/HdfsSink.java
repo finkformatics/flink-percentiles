@@ -1,6 +1,6 @@
 package de.lwerner.flink.percentiles.data;
 
-import de.lwerner.flink.percentiles.ResultReport;
+import de.lwerner.flink.percentiles.model.ResultReport;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;

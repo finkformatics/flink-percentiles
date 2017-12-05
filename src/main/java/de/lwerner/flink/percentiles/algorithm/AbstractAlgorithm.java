@@ -1,4 +1,4 @@
-package de.lwerner.flink.percentiles;
+package de.lwerner.flink.percentiles.algorithm;
 
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;

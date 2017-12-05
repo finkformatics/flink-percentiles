@@ -1,8 +1,9 @@
-package de.lwerner.flink.percentiles;
+package de.lwerner.flink.percentiles.algorithm;
 
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
+import de.lwerner.flink.percentiles.util.AppProperties;
 import de.lwerner.flink.percentiles.util.ParamHelper;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -118,6 +119,11 @@ public abstract class AbstractPercentile extends AbstractAlgorithm {
         String redisPassword = params.get("redis-password");
         if (null != redisPassword) {
             AbstractRedisAdapter.setRedisPassword(redisPassword);
+        }
+
+        String propertiesFilePath = params.get("propertiesFilePath");
+        if (null != propertiesFilePath) {
+            AppProperties.setCustomFilePath(propertiesFilePath);
         }
 
         return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, int.class, long.class)

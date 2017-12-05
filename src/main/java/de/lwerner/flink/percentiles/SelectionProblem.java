@@ -1,9 +1,11 @@
 package de.lwerner.flink.percentiles;
 
+import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.*;
 import de.lwerner.flink.percentiles.functions.redis.*;
 import de.lwerner.flink.percentiles.math.QuickSelect;
 import de.lwerner.flink.percentiles.model.DecisionModel;
+import de.lwerner.flink.percentiles.model.ResultReport;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
 import org.apache.flink.api.common.operators.Order;

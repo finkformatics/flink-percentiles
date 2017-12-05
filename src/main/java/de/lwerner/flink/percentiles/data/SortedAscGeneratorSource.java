@@ -1,6 +1,9 @@
 package de.lwerner.flink.percentiles.data;
 
 import de.lwerner.flink.percentiles.functions.redis.InputToTupleMapFunction;
+import de.lwerner.flink.percentiles.generation.FlushEvent;
+import de.lwerner.flink.percentiles.generation.FlushListener;
+import de.lwerner.flink.percentiles.generation.SortedAscGenerator;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
@@ -15,7 +18,7 @@ import java.util.List;
  *
  * @author Lukas Werner
  */
-public class SortedAscGeneratorSource implements SourceInterface {
+public class SortedAscGeneratorSource implements SourceInterface, FlushListener {
 
     /**
      * The flink execution environment
@@ -55,10 +58,9 @@ public class SortedAscGeneratorSource implements SourceInterface {
     @Override
     public List<Float> getValues() throws Exception {
         if (values == null) {
-            values = new ArrayList<>();
-            for (long i = 1; i <= n; i++) {
-                values.add(i * 0.00001f);
-            }
+            SortedAscGenerator generator = new SortedAscGenerator((int)n);
+            generator.addFlushListener(this);
+            generator.generate(n);
         }
 
         return values;
@@ -69,4 +71,8 @@ public class SortedAscGeneratorSource implements SourceInterface {
         return env;
     }
 
+    @Override
+    public void onFlush(FlushEvent event) {
+        values = event.getValues();
+    }
 }

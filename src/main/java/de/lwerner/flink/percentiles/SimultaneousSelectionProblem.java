@@ -1,5 +1,6 @@
 package de.lwerner.flink.percentiles;
 
+import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.*;
 import org.apache.flink.api.java.utils.ParameterTool;
 

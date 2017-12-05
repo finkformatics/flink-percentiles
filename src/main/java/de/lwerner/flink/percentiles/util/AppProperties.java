@@ -1,5 +1,7 @@
 package de.lwerner.flink.percentiles.util;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -19,6 +21,11 @@ public class AppProperties {
     private static final String FILE_PATH = "/application.properties";
 
     /**
+     * A custom file path
+     */
+    private static String customFilePath;
+
+    /**
      * The instance (Singleton)
      */
     private static AppProperties instance;
@@ -36,6 +43,18 @@ public class AppProperties {
      */
     private AppProperties() throws IOException {
         readAppProperties();
+    }
+
+    /**
+     * Private constructor prevents from breaking the singleton pattern. Only succeeds, if properties were loaded
+     * properly
+     *
+     * @param filePath the file path to search for properties
+     *
+     * @throws IOException if the properties file couldn't be loaded
+     */
+    private AppProperties(String filePath) throws IOException {
+        readAppProperties(filePath);
     }
 
     /**
@@ -73,6 +92,24 @@ public class AppProperties {
     }
 
     /**
+     * Actually reads the properties file by using java.util.Properties::load(InputStream in) method
+     *
+     * @param filePath the file path to search properties in
+     *
+     * @throws IOException if the properties couldn't be loaded
+     */
+    private synchronized void readAppProperties(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (file.exists() && file.canRead()) {
+            try (InputStream in = new FileInputStream(file)) {
+                properties.load(in);
+            }
+        } else {
+            readAppProperties();
+        }
+    }
+
+    /**
      * The singleton method. Instantiates the instance if not yet happened and returns it.
      *
      * @return the AppProperties singleton instance
@@ -81,10 +118,22 @@ public class AppProperties {
      */
     public static synchronized AppProperties getInstance() throws IOException {
         if (instance == null) {
-            instance = new AppProperties();
+            if (customFilePath != null) {
+                instance = new AppProperties(customFilePath);
+            } else {
+                instance = new AppProperties();
+            }
         }
 
         return instance;
     }
 
+    /**
+     * Sets the custom file path statically
+     *
+     * @param customFilePath the custom file path to set
+     */
+    public static void setCustomFilePath(String customFilePath) {
+        AppProperties.customFilePath = customFilePath;
+    }
 }

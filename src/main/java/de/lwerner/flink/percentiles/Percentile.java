@@ -1,6 +1,8 @@
 package de.lwerner.flink.percentiles;
 
+import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
 import de.lwerner.flink.percentiles.data.*;
+import de.lwerner.flink.percentiles.model.ResultReport;
 import de.lwerner.flink.percentiles.timeMeasurement.Timer;
 import org.apache.flink.api.java.utils.ParameterTool;
 

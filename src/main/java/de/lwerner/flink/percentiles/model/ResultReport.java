@@ -1,4 +1,4 @@
-package de.lwerner.flink.percentiles;
+package de.lwerner.flink.percentiles.model;
 
 import java.util.HashMap;
 import java.util.Map;

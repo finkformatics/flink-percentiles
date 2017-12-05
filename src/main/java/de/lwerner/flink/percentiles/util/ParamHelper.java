@@ -11,14 +11,23 @@ import org.apache.flink.api.java.utils.ParameterTool;
  */
 public class ParamHelper {
 
+    /**
+     * Get the data source from parameters
+     *
+     * @param params the flink parameter tool
+     * @param env the flink execution environment
+     * @param n number of values to read
+     *
+     * @return the concrete data source
+     */
     public static SourceInterface getSourceFromParams(ParameterTool params, ExecutionEnvironment env, long n) {
         SourceInterface source;
 
-        String dataSource = params.get("source", "generator");
+        String dataSource = params.get("source", "random");
 
         switch (dataSource) {
-            case "generator":
-                source = new GeneratorSource(env, n);
+            case "random":
+                source = new RandomSource(env, n);
                 break;
             case "exponential":
                 source = new ExponentialSource(env, n);
@@ -47,6 +56,13 @@ public class ParamHelper {
         return source;
     }
 
+    /**
+     * Get the data sink from parameters
+     *
+     * @param params the flink parameter tool
+     *
+     * @return the concrete data sink
+     */
     public static SinkInterface getSinkFromParams(ParameterTool params) {
         SinkInterface sink;
 
