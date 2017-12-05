@@ -16,7 +16,7 @@ import java.util.List;
 public class CalculateWeightedMedianGroupReduceFunction implements GroupReduceFunction<Tuple2<Float, Float>, Tuple1<Float>> {
 
     @Override
-    public void reduce(Iterable<Tuple2<Float, Float>> iterable, Collector<Tuple1<Float>> collector) throws Exception {
+    public void reduce(Iterable<Tuple2<Float, Float>> iterable, Collector<Tuple1<Float>> collector) {
         List<Float> medians = new ArrayList<>();
         List<Float> weights = new ArrayList<>();
         for (Tuple2<Float, Float> t: iterable) {

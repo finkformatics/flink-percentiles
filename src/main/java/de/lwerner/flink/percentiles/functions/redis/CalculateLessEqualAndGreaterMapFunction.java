@@ -1,7 +1,7 @@
 package de.lwerner.flink.percentiles.functions.redis;
 
+import de.lwerner.flink.percentiles.model.RedisCredentials;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
-import de.lwerner.flink.percentiles.util.AppProperties;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -22,6 +22,20 @@ public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tup
      */
     private float weightedMedian;
 
+    /**
+     * Redis connection info
+     */
+    private RedisCredentials redisCredentials;
+
+    /**
+     * Constructor to set the redis credentials
+     *
+     * @param redisCredentials the redis credentials
+     */
+    public CalculateLessEqualAndGreaterMapFunction(RedisCredentials redisCredentials) {
+        this.redisCredentials = redisCredentials;
+    }
+
     @Override
     public void open(Configuration parameters) throws Exception {
         Collection<Tuple1<Float>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
@@ -30,7 +44,7 @@ public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tup
             this.weightedMedian = t.f0;
         }
 
-        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(AppProperties.getInstance());
+        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(redisCredentials);
         redisAdapter.setResult(this.weightedMedian);
         redisAdapter.close();
     }

@@ -2,7 +2,6 @@ package de.lwerner.flink.percentiles.algorithm;
 
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
-import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
 import de.lwerner.flink.percentiles.util.ParamHelper;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -114,11 +113,6 @@ public abstract class AbstractPercentile extends AbstractAlgorithm {
 
         if (t < 100) {
             throw new IllegalArgumentException("Please provide a serial threshold of at least 100");
-        }
-
-        String redisPassword = params.get("redis-password");
-        if (null != redisPassword) {
-            AbstractRedisAdapter.setRedisPassword(redisPassword);
         }
 
         String propertiesFilePath = params.get("propertiesFilePath");

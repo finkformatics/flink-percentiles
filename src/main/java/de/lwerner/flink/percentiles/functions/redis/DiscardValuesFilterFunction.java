@@ -3,7 +3,6 @@ package de.lwerner.flink.percentiles.functions.redis;
 import de.lwerner.flink.percentiles.model.DecisionModel;
 import org.apache.flink.api.common.functions.RichFilterFunction;
 import org.apache.flink.api.java.tuple.Tuple1;
-import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.configuration.Configuration;
 
 import java.util.Collection;
@@ -30,7 +29,7 @@ public class DiscardValuesFilterFunction extends RichFilterFunction<Tuple1<Float
     private float weightedMedian;
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(Configuration parameters) {
         Collection<DecisionModel> decisionBase = getRuntimeContext().getBroadcastVariable("decisionBase");
 
         for (DecisionModel decisionModel: decisionBase) {
@@ -46,7 +45,7 @@ public class DiscardValuesFilterFunction extends RichFilterFunction<Tuple1<Float
     }
 
     @Override
-    public boolean filter(Tuple1<Float> t) throws Exception {
+    public boolean filter(Tuple1<Float> t) {
         return !foundResult && ((keepLess && t.f0 < weightedMedian) || (!keepLess && t.f0 > weightedMedian));
     }
 }

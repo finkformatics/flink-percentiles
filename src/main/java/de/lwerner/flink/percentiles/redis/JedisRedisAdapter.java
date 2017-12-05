@@ -25,6 +25,15 @@ public class JedisRedisAdapter extends AbstractRedisAdapter {
         jedis = JedisHelper.getJedis(host, port);
     }
 
+    /**
+     * Authenticate
+     *
+     * @param password the password to send
+     */
+    public void auth(String password) {
+        jedis.auth(password);
+    }
+
     @Override
     public long getN() {
         return JedisHelper.getN(jedis);

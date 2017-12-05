@@ -12,7 +12,7 @@ import org.apache.flink.api.java.tuple.Tuple3;
 public class CalculateLessEqualAndGreaterReduceFunction implements ReduceFunction<Tuple3<Long, Long, Long>> {
 
     @Override
-    public Tuple3<Long, Long, Long> reduce(Tuple3<Long, Long, Long> t1, Tuple3<Long, Long, Long> t2) throws Exception {
+    public Tuple3<Long, Long, Long> reduce(Tuple3<Long, Long, Long> t1, Tuple3<Long, Long, Long> t2) {
         return new Tuple3<>(t1.f0 + t2.f0, t1.f1 + t2.f1, t1.f2 + t2.f2);
     }
 

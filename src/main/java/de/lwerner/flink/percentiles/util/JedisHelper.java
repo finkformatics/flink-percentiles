@@ -1,6 +1,5 @@
 package de.lwerner.flink.percentiles.util;
 
-import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -48,13 +47,7 @@ public class JedisHelper {
      * @return the built Jedis object
      */
     public static Jedis getJedis(String host, int port) {
-        Jedis jedis = new Jedis(host, port);
-
-        if (AbstractRedisAdapter.getRedisPassword() != null) {
-            jedis.auth(AbstractRedisAdapter.getRedisPassword());
-        }
-
-        return jedis;
+        return new Jedis(host, port);
     }
 
     /**

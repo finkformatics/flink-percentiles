@@ -11,7 +11,7 @@ import org.apache.flink.api.java.tuple.Tuple1;
 public class RemainingValuesMapFunction implements MapFunction<Tuple1<Float>, Float> {
 
     @Override
-    public Float map(Tuple1<Float> t) throws Exception {
+    public Float map(Tuple1<Float> t) {
         return t.f0;
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 public class MedianAndCountMapPartitionFunction implements MapPartitionFunction<Tuple1<Float>, Tuple2<Float, Long>> {
 
     @Override
-    public void mapPartition(Iterable<Tuple1<Float>> iterable, Collector<Tuple2<Float, Long>> collector) throws Exception {
+    public void mapPartition(Iterable<Tuple1<Float>> iterable, Collector<Tuple2<Float, Long>> collector) {
         List<Float> list = new ArrayList<>();
         for (Tuple1<Float> t: iterable) {
             list.add(t.f0);

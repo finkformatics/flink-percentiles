@@ -1,7 +1,6 @@
 package de.lwerner.flink.percentiles.redis;
 
-import de.lwerner.flink.percentiles.util.AppProperties;
-import de.lwerner.flink.percentiles.util.PropertyName;
+import de.lwerner.flink.percentiles.model.RedisCredentials;
 
 import java.io.Serializable;
 
@@ -22,11 +21,6 @@ public abstract class AbstractRedisAdapter implements Serializable {
      * The adapter name for a redis simulation
      */
     private static final String REDIS_ADAPTER_FAKE = "fake";
-
-    /**
-     * Redis password, not necessarily required
-     */
-    private static String redisPassword = null;
 
     /**
      * Gets the N value (holds the current amount of elements, remaining in algorithm)
@@ -142,41 +136,25 @@ public abstract class AbstractRedisAdapter implements Serializable {
     /**
      * Factory method, initiates adapter by given properties, which hold the adapter name
      *
-     * @param properties the properties which hold the adapter name
+     * @param redisCredentials the redis connection info
      *
      * @return the adapter or fake adapter if not found
      */
-    public static AbstractRedisAdapter factory(AppProperties properties) {
-        String redisAdapterName = properties.getProperty(PropertyName.REDIS_ADAPTER);
-        switch (redisAdapterName) {
+    public static AbstractRedisAdapter factory(RedisCredentials redisCredentials) {
+        switch (redisCredentials.getAdapter()) {
             case REDIS_ADAPTER_JEDIS:
-                return new JedisRedisAdapter(
-                        properties.getProperty(PropertyName.REDIS_HOST),
-                        Integer.valueOf(properties.getProperty(PropertyName.REDIS_PORT))
-                );
+                JedisRedisAdapter adapter = new JedisRedisAdapter(redisCredentials.getHost(), redisCredentials.getPort());
+
+                if (redisCredentials.getPassword() != null) {
+                    adapter.auth(redisCredentials.getPassword());
+                }
+
+                return adapter;
             case REDIS_ADAPTER_FAKE:
                 return FakeRedisAdapter.getInstance();
             default:
                 return FakeRedisAdapter.getInstance();
         }
-    }
-
-    /**
-     * Set the redis password
-     *
-     * @param redisPassword the redis password to set
-     */
-    public static void setRedisPassword(String redisPassword) {
-        AbstractRedisAdapter.redisPassword = redisPassword;
-    }
-
-    /**
-     * Get the redis password
-     *
-     * @return the redis password if set
-     */
-    public static String getRedisPassword() {
-        return redisPassword;
     }
 
 }

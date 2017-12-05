@@ -11,7 +11,7 @@ import org.apache.flink.api.java.tuple.Tuple1;
 public class InputToTupleMapFunction implements MapFunction<Float, Tuple1<Float>> {
 
     @Override
-    public Tuple1<Float> map(Float f) throws Exception {
+    public Tuple1<Float> map(Float f) {
         return new Tuple1<>(f);
     }
 

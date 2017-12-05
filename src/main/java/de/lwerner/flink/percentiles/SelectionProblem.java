@@ -5,9 +5,11 @@ import de.lwerner.flink.percentiles.data.*;
 import de.lwerner.flink.percentiles.functions.redis.*;
 import de.lwerner.flink.percentiles.math.QuickSelect;
 import de.lwerner.flink.percentiles.model.DecisionModel;
+import de.lwerner.flink.percentiles.model.RedisCredentials;
 import de.lwerner.flink.percentiles.model.ResultReport;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
+import de.lwerner.flink.percentiles.util.PropertyName;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.operators.IterativeDataSet;
@@ -96,8 +98,14 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         getTimer().startTimer();
 
+        RedisCredentials redisCredentials = new RedisCredentials();
+        redisCredentials.setAdapter(properties.getProperty(PropertyName.REDIS_ADAPTER));
+        redisCredentials.setHost(properties.getProperty(PropertyName.REDIS_HOST));
+        redisCredentials.setPort(Integer.valueOf(properties.getProperty(PropertyName.REDIS_PORT)));
+        redisCredentials.setPassword(properties.getProperty(PropertyName.REDIS_PASSWORD));
+
         // Create a redis adapter
-        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(properties);
+        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(redisCredentials);
         redisAdapter.reset();
 
         // Initiate the values on redis
@@ -119,7 +127,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         // Calculate weights (percentage part of total values)
         DataSet<Tuple2<Float, Float>> mediansAndWeights = mediansCountsAndN
-                .map(new CalculateWeightsMapFunction());
+                .map(new CalculateWeightsMapFunction(redisCredentials));
 
         // Calculate the weighted median
         DataSet<Tuple1<Float>> weightedMedian = mediansAndWeights
@@ -127,7 +135,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         // Count how much values are below (l), equal (e) or higher (g) than the weighted median
         DataSet<Tuple3<Long, Long, Long>> leg = initial
-                .map(new CalculateLessEqualAndGreaterMapFunction())
+                .map(new CalculateLessEqualAndGreaterMapFunction(redisCredentials))
                 .withBroadcastSet(weightedMedian, "weightedMedian")
                 .reduce(new CalculateLessEqualAndGreaterReduceFunction());
 
@@ -136,7 +144,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // - k <= |less values|: k must be below weighted median (discard any values, which are equal and greater W)
         // - k > |less values| + |equal values|: k must be higher than weighted median (discard equal and less)
         DataSet<DecisionModel> decisionBase = leg
-                .map(new DecideWhatToDoMapFunction());
+                .map(new DecideWhatToDoMapFunction(redisCredentials));
 
         // Actually discard the values by the decision base
         DataSet<Tuple1<Float>> iteration = initial
@@ -146,7 +154,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         // Clear data set, if we're finished
         DataSet<DecisionModel> terminationCriterion = decisionBase
-                .filter(new TerminationCriterionFilterFunction());
+                .filter(new TerminationCriterionFilterFunction(redisCredentials));
 
         // Iterate, until finish condition is met
         DataSet<Tuple1<Float>> remaining = initial.closeWith(iteration, terminationCriterion);
@@ -154,14 +162,6 @@ public class SelectionProblem extends AbstractSelectionProblem {
         List<Float> remainingList = remaining
                 .map(new RemainingValuesMapFunction())
                 .collect();
-
-        // Solve sequentially
-//        DataSet<Float> resultSet = remaining
-//                .partitionCustom(new RandomPartitioner(), 0).setParallelism(1)
-//                .sortPartition(0, Order.ASCENDING).setParallelism(1)
-//                .mapPartition(new SequentiallySolve()).setParallelism(1);
-
-//        List<Float> resultList = resultSet.collect();
 
         float result;
         if (remainingList.isEmpty()) {

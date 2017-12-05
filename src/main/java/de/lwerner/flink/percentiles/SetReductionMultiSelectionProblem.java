@@ -3,8 +3,10 @@ package de.lwerner.flink.percentiles;
 import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
+import de.lwerner.flink.percentiles.model.RedisCredentials;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
+import de.lwerner.flink.percentiles.util.PropertyName;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 /**
@@ -35,8 +37,14 @@ public class SetReductionMultiSelectionProblem extends AbstractSelectionProblem 
         // Holds important information just as how to connect to redis
         AppProperties properties = AppProperties.getInstance();
 
+        RedisCredentials redisCredentials = new RedisCredentials();
+        redisCredentials.setAdapter(properties.getProperty(PropertyName.REDIS_ADAPTER));
+        redisCredentials.setHost(properties.getProperty(PropertyName.REDIS_HOST));
+        redisCredentials.setPort(Integer.valueOf(properties.getProperty(PropertyName.REDIS_PORT)));
+        redisCredentials.setPassword(properties.getProperty(PropertyName.REDIS_PASSWORD));
+
         // Create a redis adapter
-        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(properties);
+        AbstractRedisAdapter redisAdapter = AbstractRedisAdapter.factory(redisCredentials);
         redisAdapter.reset();
 
         for (long kVal: getK()) {

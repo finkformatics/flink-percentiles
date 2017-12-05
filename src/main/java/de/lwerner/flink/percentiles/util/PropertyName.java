@@ -20,7 +20,11 @@ public enum PropertyName {
     /**
      * Redis adapter to use
      */
-    REDIS_ADAPTER("redis.adapter");
+    REDIS_ADAPTER("redis.adapter"),
+    /**
+     * Redis password for auth
+     */
+    REDIS_PASSWORD("redis.password");
 
     /**
      * The actual property key
