@@ -159,9 +159,11 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // Iterate, until finish condition is met
         DataSet<Tuple1<Float>> remaining = initial.closeWith(iteration, terminationCriterion);
 
+        getTimer().startTimer("actual");
         List<Float> remainingList = remaining
                 .map(new RemainingValuesMapFunction())
                 .collect();
+        getTimer().stopTimer("actual");
 
         float result;
         if (remainingList.isEmpty()) {

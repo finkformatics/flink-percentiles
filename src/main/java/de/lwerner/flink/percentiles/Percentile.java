@@ -32,13 +32,15 @@ public class Percentile extends AbstractPercentile {
         super(source, sink, p, t);
 
         float np = source.getCount() / 100f;
-        setK((int)(np * p));
+        setK((int)Math.ceil(np * p));
 
         selectionProblem = new SelectionProblem(source, sink, new long[]{getK()}, t, false);
     }
 
     @Override
     public void solve() throws Exception {
+        getSource().getEnv().setParallelism(8);
+
         selectionProblem.solve();
 
         float result = selectionProblem.getResult();

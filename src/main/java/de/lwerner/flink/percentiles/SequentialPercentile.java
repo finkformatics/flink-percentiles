@@ -30,7 +30,7 @@ public class SequentialPercentile extends AbstractPercentile {
         super(source, sink, p, t);
 
         float np = source.getCount() / 100f; // Might seem too complex, but first lower the number, then multiply
-        setK((int)(np * p));
+        setK((int)Math.ceil(np * p));
     }
 
     @Override

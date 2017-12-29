@@ -27,11 +27,11 @@ public class ApproximativePercentile extends AbstractPercentile {
      * @param p      the percentage value
      * @param t      serial computation threshold
      */
-    protected ApproximativePercentile(SourceInterface source, SinkInterface sink, int p, long t) {
+    public ApproximativePercentile(SourceInterface source, SinkInterface sink, int p, long t) {
         super(source, sink, p, t);
 
         float np = source.getCount() / 100f;
-        setK((int)(np * p));
+        setK((int)Math.ceil(np * p));
 
         approximativeSelectionProblem = new ApproximativeSelectionProblem(source, sink, new long[]{getK()}, t, false);
     }
