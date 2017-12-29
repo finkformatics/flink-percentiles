@@ -96,6 +96,11 @@ under the License.
         <!-- explicitly add a standard loggin framework, as Flink does not have
             a hard dependency on one specific framework by default -->
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>2.7.4</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>${slf4j.version}</version>
@@ -158,6 +163,11 @@ under the License.
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-client</artifactId>
+                    <version>2.7.4</version>
+                </dependency>
+                <dependency>
                     <groupId>com.opencsv</groupId>
                     <artifactId>opencsv</artifactId>
                     <version>4.0</version>
@@ -204,7 +214,7 @@ under the License.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>${main.algorithm.classgit}</mainClass>
+                            <mainClass>${main.algorithm.class}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
