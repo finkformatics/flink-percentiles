@@ -114,27 +114,29 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
+        remaining.print();
 
-        List<Float> values = remainingValues.stream().map(t -> t.f0).collect(Collectors.toList());
-        long k = remainingValues.get(0).f1;
+//        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
+//
+//        List<Float> values = remainingValues.stream().map(t -> t.f0).collect(Collectors.toList());
+//        long k = remainingValues.get(0).f1;
 
         // TODO: Catch the case if we have an empty list
 
-        System.out.println(remainingValues.get(0));
-        System.out.println(k);
-
-        QuickSelect quickSelect = new QuickSelect();
-        result = quickSelect.select(values, (int)k - 1);
-
-        if (useSink) {
-            ResultReport resultReport = new ResultReport();
-            resultReport.setK(getK());
-            resultReport.setResults(new float[]{result});
-
-            // Sink for the result
-            getSink().processResult(resultReport);
-        }
+//        System.out.println(remainingValues.get(0));
+//        System.out.println(k);
+//
+//        QuickSelect quickSelect = new QuickSelect();
+//        result = quickSelect.select(values, (int)k - 1);
+//
+//        if (useSink) {
+//            ResultReport resultReport = new ResultReport();
+//            resultReport.setK(getK());
+//            resultReport.setResults(new float[]{result});
+//
+//            // Sink for the result
+//            getSink().processResult(resultReport);
+//        }
     }
 
     /**
