@@ -14,25 +14,25 @@ import java.util.Collection;
  *
  * @author Lukas Werner
  */
-public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tuple3<Double, Integer, Integer>, Tuple5<Integer, Integer, Integer, Integer, Integer>> {
+public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tuple3<Float, Long, Long>, Tuple5<Long, Long, Long, Long, Long>> {
 
     /**
      * The weighted median
      */
-    private double weightedMedian;
+    private float weightedMedian;
 
     @Override
-    public void open(Configuration parameters) throws Exception {
-        Collection<Tuple1<Double>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
+    public void open(Configuration parameters) {
+        Collection<Tuple1<Float>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
 
-        for (Tuple1<Double> t: weightedMedian) {
+        for (Tuple1<Float> t: weightedMedian) {
             this.weightedMedian = t.f0;
         }
     }
 
     @Override
-    public Tuple5<Integer, Integer, Integer, Integer, Integer> map(Tuple3<Double, Integer, Integer> t) throws Exception {
-        return new Tuple5<>(t.f0 < weightedMedian ? 1 : 0, t.f0 == weightedMedian ? 1 : 0, t.f0 > weightedMedian ? 1 : 0, t.f1, t.f2);
+    public Tuple5<Long, Long, Long, Long, Long> map(Tuple3<Float, Long, Long> t) {
+        return new Tuple5<>(t.f0 < weightedMedian ? 1L : 0L, t.f0 == weightedMedian ? 1L : 0L, t.f0 > weightedMedian ? 1L : 0L, t.f1, t.f2);
     }
 
 }

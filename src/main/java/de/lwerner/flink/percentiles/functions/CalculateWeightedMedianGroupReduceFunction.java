@@ -1,4 +1,4 @@
-package de.lwerner.flink.percentiles.functions.redis;
+package de.lwerner.flink.percentiles.functions;
 
 import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.java.tuple.Tuple1;

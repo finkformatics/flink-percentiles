@@ -9,10 +9,10 @@ import org.apache.flink.api.java.tuple.Tuple5;
  *
  * @author Lukas Werner
  */
-public class CalculateLessEqualAndGreaterReduceFunction implements ReduceFunction<Tuple5<Integer, Integer, Integer, Integer, Integer>> {
+public class CalculateLessEqualAndGreaterReduceFunction implements ReduceFunction<Tuple5<Long, Long, Long, Long, Long>> {
 
     @Override
-    public Tuple5<Integer, Integer, Integer, Integer, Integer> reduce(Tuple5<Integer, Integer, Integer, Integer, Integer> t1, Tuple5<Integer, Integer, Integer, Integer, Integer> t2) throws Exception {
+    public Tuple5<Long, Long, Long, Long, Long> reduce(Tuple5<Long, Long, Long, Long, Long> t1, Tuple5<Long, Long, Long, Long, Long> t2) {
         return new Tuple5<>(t1.f0 + t2.f0, t1.f1 + t2.f1, t1.f2 + t2.f2, t1.f3, t1.f4);
     }
 

@@ -10,10 +10,10 @@ import org.apache.flink.api.java.tuple.Tuple5;
  *
  * @author Lukas Werner
  */
-public class TerminationCriterionFilterFunction extends RichFilterFunction<Tuple5<Boolean, Boolean, Double, Integer, Integer>> {
+public class TerminationCriterionFilterFunction extends RichFilterFunction<Tuple5<Boolean, Boolean, Float, Long, Long>> {
 
     @Override
-    public boolean filter(Tuple5<Boolean, Boolean, Double, Integer, Integer> t) throws Exception {
+    public boolean filter(Tuple5<Boolean, Boolean, Float, Long, Long> t) {
         return !t.f0 && t.f4 > SelectionProblemWithoutRedis.VALUE_COUNT_THRESHOLD;
     }
 

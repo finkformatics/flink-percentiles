@@ -9,11 +9,11 @@ import org.apache.flink.api.java.tuple.Tuple3;
  *
  * @author Lukas Werner
  */
-public class CalculateWeightsMapFunction implements MapFunction<Tuple3<Double, Integer, Integer>, Tuple2<Double, Double>> {
+public class CalculateWeightsMapFunction implements MapFunction<Tuple3<Float, Long, Long>, Tuple2<Float, Float>> {
 
     @Override
-    public Tuple2<Double, Double> map(Tuple3<Double, Integer, Integer> medianCountAndN) throws Exception {
-        return new Tuple2<>(medianCountAndN.f0, medianCountAndN.f1 / (double)medianCountAndN.f2);
+    public Tuple2<Float, Float> map(Tuple3<Float, Long, Long> medianCountAndN) {
+        return new Tuple2<>(medianCountAndN.f0, medianCountAndN.f1 / (float)medianCountAndN.f2);
     }
 
 }

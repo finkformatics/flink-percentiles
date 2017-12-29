@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.*;
+import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.redis.*;
 import de.lwerner.flink.percentiles.math.QuickSelect;
 import de.lwerner.flink.percentiles.model.DecisionModel;
