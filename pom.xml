@@ -34,6 +34,7 @@ under the License.
         <slf4j.version>1.7.7</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <scala.binary.version>2.10</scala.binary.version>
+        <main.algorithm.class>de.lwerner.flink.percentiles.Percentile</main.algorithm.class>
     </properties>
 
     <repositories>
@@ -203,7 +204,7 @@ under the License.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.lwerner.flink.percentiles.Percentile</mainClass>
+                            <mainClass>${main.algorithm.classgit}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

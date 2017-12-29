@@ -1,11 +1,10 @@
 package de.lwerner.flink.percentiles.functions.join;
 
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.functions.RichFilterFunction;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.util.Collector;
 
 import java.util.Collection;
 
@@ -14,7 +13,7 @@ import java.util.Collection;
  *
  * @author Lukas Werner
  */
-public class DiscardValuesFlatMapFunction extends RichFlatMapFunction<Tuple3<Double, Integer, Integer>, Tuple3<Double, Integer, Integer>> {
+public class DiscardValuesFlatMapFunction extends RichFilterFunction<Tuple3<Float, Long, Long>> {
 
     /**
      * Indicates, if we already found a result
@@ -24,44 +23,32 @@ public class DiscardValuesFlatMapFunction extends RichFlatMapFunction<Tuple3<Dou
      * Decision, if we keep the less or the greater elements
      */
     private boolean keepLess;
-    /**
-     * k
-     */
-    private int k;
-    /**
-     * n
-     */
-    private int n;
 
     /**
      * The weighted median
      */
-    private double weightedMedian;
+    private float weightedMedian;
 
     @Override
-    public void open(Configuration parameters) throws Exception {
-        Collection<Tuple5<Boolean, Boolean, Double, Integer, Integer>> decisionBase = getRuntimeContext().getBroadcastVariable("decisionBase");
+    public void open(Configuration parameters) {
+        Collection<Tuple5<Boolean, Boolean, Float, Long, Long>> decisionBase = getRuntimeContext().getBroadcastVariable("decisionBase");
 
-        for (Tuple5<Boolean, Boolean, Double, Integer, Integer> t: decisionBase) {
+        for (Tuple5<Boolean, Boolean, Float, Long, Long> t: decisionBase) {
             this.foundResult = t.f0;
             this.keepLess = t.f1;
-            this.k = t.f3;
-            this.n = t.f4;
         }
 
-        Collection<Tuple1<Double>> weightedMedianCollection = getRuntimeContext().getBroadcastVariable("weightedMedian");
+        Collection<Tuple1<Float>> weightedMedianCollection = getRuntimeContext().getBroadcastVariable("weightedMedian");
 
-        for (Tuple1<Double> t: weightedMedianCollection) {
+        for (Tuple1<Float> t: weightedMedianCollection) {
             this.weightedMedian = t.f0;
         }
     }
 
     @Override
-    public void flatMap(Tuple3<Double, Integer, Integer> t, Collector<Tuple3<Double, Integer, Integer>> out) throws Exception {
-        if ((foundResult && weightedMedian == t.f0)
+    public boolean filter(Tuple3<Float, Long, Long> t) {
+        return (foundResult && weightedMedian == t.f0)
                 || (!foundResult && keepLess && t.f0 < weightedMedian)
-                || (!foundResult && !keepLess && t.f0 > weightedMedian)) {
-            out.collect(new Tuple3<>(t.f0, k, n));
-        }
+                || (!foundResult && !keepLess && t.f0 > weightedMedian);
     }
 }

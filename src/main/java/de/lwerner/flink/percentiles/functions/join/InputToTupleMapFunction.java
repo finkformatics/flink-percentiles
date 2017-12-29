@@ -1,6 +1,7 @@
 package de.lwerner.flink.percentiles.functions.join;
 
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple3;
 
 /**
@@ -8,16 +9,16 @@ import org.apache.flink.api.java.tuple.Tuple3;
  *
  * @author Lukas Werner
  */
-public class InputToTupleMapFunction implements MapFunction<Double, Tuple3<Double, Integer, Integer>> {
+public class InputToTupleMapFunction implements MapFunction<Tuple1<Float>, Tuple3<Float, Long, Long>> {
 
     /**
      * k
      */
-    private int k;
+    private long k;
     /**
      * n
      */
-    private int n;
+    private long n;
 
     /**
      * Constructor sets k and n to map
@@ -25,14 +26,14 @@ public class InputToTupleMapFunction implements MapFunction<Double, Tuple3<Doubl
      * @param k the k
      * @param n the n
      */
-    public InputToTupleMapFunction(int k, int n) {
+    public InputToTupleMapFunction(long k, long n) {
         this.k = k;
         this.n = n;
     }
 
     @Override
-    public Tuple3<Double, Integer, Integer> map(Double d) throws Exception {
-        return new Tuple3<>(d, k, n);
+    public Tuple3<Float, Long, Long> map(Tuple1<Float> t) {
+        return new Tuple3<>(t.f0, k, n);
     }
 
 }

@@ -16,29 +16,29 @@ import java.util.Collection;
  *
  * @author Lukas Werner
  */
-public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple5<Integer, Integer, Integer, Integer, Integer>, Tuple5<Boolean, Boolean, Double, Integer, Integer>> {
+public class DecideWhatToDoMapFunction extends RichMapFunction<Tuple5<Long, Long, Long, Long, Long>, Tuple5<Boolean, Boolean, Float, Long, Long>> {
 
     /**
      * The weighted median
      */
-    private double weightedMedian;
+    private float weightedMedian;
 
     @Override
-    public void open(Configuration parameters) throws Exception {
-        Collection<Tuple1<Double>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
-        for (Tuple1<Double> t: weightedMedian) {
+    public void open(Configuration parameters) {
+        Collection<Tuple1<Float>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
+        for (Tuple1<Float> t: weightedMedian) {
             this.weightedMedian = t.f0;
         }
     }
 
     @Override
-    public Tuple5<Boolean, Boolean, Double, Integer, Integer> map(Tuple5<Integer, Integer, Integer, Integer, Integer> t) throws Exception {
+    public Tuple5<Boolean, Boolean, Float, Long, Long> map(Tuple5<Long, Long, Long, Long, Long> t) {
         boolean foundResult = false;
         boolean keepLess = false;
-        double result = 0;
+        float result = 0;
 
-        int n = t.f4;
-        int k = t.f3;
+        long n = t.f4;
+        long k = t.f3;
 
         if (t.f0 < t.f3 && t.f3 <= t.f0 + t.f1) {
             foundResult = true;

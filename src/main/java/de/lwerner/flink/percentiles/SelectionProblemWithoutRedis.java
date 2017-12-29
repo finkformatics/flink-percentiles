@@ -1,13 +1,20 @@
 package de.lwerner.flink.percentiles;
 
+import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
+import de.lwerner.flink.percentiles.data.SinkInterface;
+import de.lwerner.flink.percentiles.data.SourceInterface;
+import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.join.*;
+import de.lwerner.flink.percentiles.math.QuickSelect;
+import de.lwerner.flink.percentiles.model.ResultReport;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
-import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.*;
+import org.apache.flink.api.java.utils.ParameterTool;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
@@ -16,12 +23,119 @@ import java.util.*;
  *
  * @author Lukas Werner
  */
-public class SelectionProblemWithoutRedis {
+public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
 
     /**
-     * The threshold for value count. If we have at most this number of elements, we can calculate sequentially
+     * Threshold for sequential computation
      */
-    public static final int VALUE_COUNT_THRESHOLD = 250000;
+    public static final long VALUE_COUNT_THRESHOLD = 1000000;
+
+    /**
+     * Should we use the sink?
+     */
+    private boolean useSink;
+
+    /**
+     * Store result
+     */
+    private float result;
+
+    /**
+     * SelectionProblemWithoutRedis constructor, sets the required values
+     *
+     * @param source the data source
+     * @param sink   the data sink
+     * @param k      the ranks
+     * @param t      serial computation threshold
+     */
+    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long[] k, long t) {
+        this(source, sink, k, t, true);
+    }
+
+    /**
+     * SelectionProblemWithoutRedis constructor, sets the required values, utilizes useSink parameter
+     *
+     * @param source the data source
+     * @param sink the data sink
+     * @param k the ranks
+     * @param t serial computation threshold
+     * @param useSink use the sink directly
+     */
+    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long[] k, long t, boolean useSink) {
+        super(source, sink, k, t);
+
+        this.useSink = useSink;
+    }
+
+    /**
+     * Get result
+     *
+     * @return result
+     */
+    public float getResult() {
+        return result;
+    }
+
+    @Override
+    public void solve() throws Exception {
+        IterativeDataSet<Tuple3<Float, Long, Long>> initial = getSource().getDataSet()
+                .map(new InputToTupleMapFunction(getFirstK(), getSource().getCount()))
+                .iterate(1000);
+
+        DataSet<Tuple3<Float, Long, Long>> mediansCountsAndN = initial
+                .partitionByHash(0)
+                .sortPartition(0, Order.ASCENDING)
+                .mapPartition(new MedianAndCountMapPartitionFunction());
+
+        DataSet<Tuple2<Float, Float>> mediansAndWeights = mediansCountsAndN
+                .map(new CalculateWeightsMapFunction());
+
+        DataSet<Tuple1<Float>> weightedMedian = mediansAndWeights
+                .reduceGroup(new CalculateWeightedMedianGroupReduceFunction());
+
+        DataSet<Tuple5<Long, Long, Long, Long, Long>> leg = initial
+                .map(new CalculateLessEqualAndGreaterMapFunction())
+                .withBroadcastSet(weightedMedian, "weightedMedian")
+                .reduce(new CalculateLessEqualAndGreaterReduceFunction());
+
+        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> decisionBase = leg
+                .map(new DecideWhatToDoMapFunction())
+                .withBroadcastSet(weightedMedian, "weightedMedian");
+
+        DataSet<Tuple3<Float, Long, Long>> iteration = initial
+                .filter(new DiscardValuesFlatMapFunction())
+                .withBroadcastSet(decisionBase, "decisionBase")
+                .withBroadcastSet(weightedMedian, "weightedMedian");
+
+        // TODO: Problem: How to conditionally reduce to 1 element, if the weighted median is the found result
+
+        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> terminationCriterion = decisionBase
+                .filter(new TerminationCriterionFilterFunction());
+
+        DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
+
+        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
+
+        List<Float> values = remainingValues.stream().map(t -> t.f0).collect(Collectors.toList());
+        long k = remainingValues.get(0).f1;
+
+        // TODO: Catch the case if we have an empty list
+
+        System.out.println(remainingValues.get(0));
+        System.out.println(k);
+
+        QuickSelect quickSelect = new QuickSelect();
+        result = quickSelect.select(values, (int)k - 1);
+
+        if (useSink) {
+            ResultReport resultReport = new ResultReport();
+            resultReport.setK(getK());
+            resultReport.setResults(new float[]{result});
+
+            // Sink for the result
+            getSink().processResult(resultReport);
+        }
+    }
 
     /**
      * The main application method, fetches execution environment, generates random values and executes the main
@@ -32,62 +146,12 @@ public class SelectionProblemWithoutRedis {
      * @throws Exception if something goes wrong
      */
     public static void main(String[] args) throws Exception {
-        final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        ParameterTool params = ParameterTool.fromArgs(args);
 
-        List<Double> values = new ArrayList<>();
-        Random rnd = new Random();
-        for (int i = 0; i < 10000000; i++) {
-            values.add(rnd.nextDouble());
-        }
+        long k = Long.valueOf(params.getRequired("k"));
 
-        int k = 1000000;
-        int n = values.size();
-
-        IterativeDataSet<Tuple3<Double, Integer, Integer>> initial = env.fromCollection(values)
-                .map(new InputToTupleMapFunction(k, n))
-                .iterate(1000);
-
-        DataSet<Tuple3<Double, Integer, Integer>> mediansCountsAndN = initial
-                .partitionByHash(0)
-                .sortPartition(0, Order.ASCENDING)
-                .mapPartition(new MedianAndCountMapPartitionFunction());
-
-        DataSet<Tuple2<Double, Double>> mediansAndWeights = mediansCountsAndN
-                .map(new CalculateWeightsMapFunction());
-
-        DataSet<Tuple1<Double>> weightedMedian = mediansAndWeights
-                .reduceGroup(new CalculateWeightedMedianGroupReduceFunction());
-
-        DataSet<Tuple5<Integer, Integer, Integer, Integer, Integer>> leg = initial
-                .map(new CalculateLessEqualAndGreaterMapFunction())
-                .withBroadcastSet(weightedMedian, "weightedMedian")
-                .reduce(new CalculateLessEqualAndGreaterReduceFunction());
-
-        DataSet<Tuple5<Boolean, Boolean, Double, Integer, Integer>> decisionBase = leg
-                .map(new DecideWhatToDoMapFunction())
-                .withBroadcastSet(weightedMedian, "weightedMedian");
-
-        DataSet<Tuple3<Double, Integer, Integer>> iteration = initial
-                .flatMap(new DiscardValuesFlatMapFunction())
-                .withBroadcastSet(decisionBase, "decisionBase")
-                .withBroadcastSet(weightedMedian, "weightedMedian");
-
-        // TODO: Problem: How to conditionally reduce to 1 element, if the weighted median is the found result
-
-        DataSet<Tuple5<Boolean, Boolean, Double, Integer, Integer>> terminationCriterion = decisionBase
-                .filter(new TerminationCriterionFilterFunction());
-
-        DataSet<Tuple3<Double, Integer, Integer>> remaining = initial.closeWith(iteration, terminationCriterion);
-
-        List<Tuple3<Double, Integer, Integer>> remainingValues = remaining.collect();
-
-        // TODO: Catch the case if we have an empty list
-
-        remainingValues.sort(Comparator.comparingDouble(o -> o.f0));
-
-        double result = remainingValues.get(remainingValues.get(0).f1 - 1).f0;
-
-        System.out.println(result);
+        SelectionProblemWithoutRedis algorithm = factory(SelectionProblemWithoutRedis.class, params, new long[]{k});
+        algorithm.solve();
     }
 
 }
