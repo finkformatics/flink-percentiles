@@ -110,7 +110,7 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
         // TODO: Problem: How to conditionally reduce to 1 element, if the weighted median is the found result
 
         DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> terminationCriterion = decisionBase
-                .filter(new TerminationCriterionFilterFunction());
+                .filter(new TerminationCriterionFilterFunction(VALUE_COUNT_THRESHOLD));
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
