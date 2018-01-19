@@ -1,6 +1,5 @@
 package de.lwerner.flink.percentiles.functions.join;
 
-import de.lwerner.flink.percentiles.SelectionProblemWithoutRedis;
 import org.apache.flink.api.common.functions.RichFilterFunction;
 import org.apache.flink.api.java.tuple.Tuple5;
 
@@ -12,9 +11,15 @@ import org.apache.flink.api.java.tuple.Tuple5;
  */
 public class TerminationCriterionFilterFunction extends RichFilterFunction<Tuple5<Boolean, Boolean, Float, Long, Long>> {
 
+    private long countThreshold;
+
+    public TerminationCriterionFilterFunction(long countThreshold) {
+        this.countThreshold = countThreshold;
+    }
+
     @Override
     public boolean filter(Tuple5<Boolean, Boolean, Float, Long, Long> t) {
-        return !t.f0 && t.f4 > SelectionProblemWithoutRedis.VALUE_COUNT_THRESHOLD;
+        return !t.f0 && t.f4 > countThreshold;
     }
 
 }
