@@ -18,7 +18,51 @@ public class QuickSelect {
      * @return the actual value
      */
     public float select(List<Float> list, int k) {
+        return select(list, k, false);
+    }
+
+    /**
+     * Entry point for this algorithm
+     *
+     * @param list the list of values
+     * @param k the rank
+     * @param recursive should this algorithm run recursively?
+     *
+     * @return the actual value
+     */
+    public float select(List<Float> list, int k, boolean recursive) {
+        if (recursive) {
+            return selectRecursive(list, 0, list.size() - 1, k);
+        }
+
         return select(list, list.size() - 1, k);
+    }
+
+    /**
+     * Quicksort like selection algorithm (recursive variant).
+     *
+     * @param list the values list
+     * @param left the left bound
+     * @param right the right bound
+     * @param k the rank
+     *
+     * @return the result
+     */
+    private float selectRecursive(List<Float> list, int left, int right, int k) {
+        if (left == right) {
+            return list.get(left);
+        }
+
+        int pivotIndex = left + (int) Math.floor((right - left + 1) / 2.0);
+        pivotIndex = partition(list, left, right, pivotIndex);
+
+        if (k == pivotIndex) {
+            return list.get(k);
+        } else if (k < pivotIndex) {
+            return selectRecursive(list, left, pivotIndex - 1, k);
+        } else {
+            return selectRecursive(list, pivotIndex + 1, right, k);
+        }
     }
 
     /**
