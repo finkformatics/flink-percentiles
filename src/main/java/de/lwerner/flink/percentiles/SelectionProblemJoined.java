@@ -12,6 +12,8 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 
+import java.util.List;
+
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
  * set of elements. Sequentially, this is as easy as bringing the elements in order and getting the kth element,
@@ -66,7 +68,8 @@ public class SelectionProblemJoined {
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        remaining.print();
+        List<Tuple3<Float, Long, Long>> remainingCollected = remaining.collect();
+        System.out.println(remainingCollected.get(0));
 
 //        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
 //
