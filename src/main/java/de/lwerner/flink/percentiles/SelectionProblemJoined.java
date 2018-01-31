@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.join.*;
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -14,6 +15,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
@@ -29,7 +31,7 @@ public class SelectionProblemJoined {
     private long count;
     private long countThreshold;
 
-    public void solve() {
+    public void solve() throws Exception {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         DataSet<Float> dataSet = env.readFileOfPrimitives(path, Float.class);
@@ -70,6 +72,9 @@ public class SelectionProblemJoined {
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
         remaining.writeAsCsv(path + "_result", FileSystem.WriteMode.OVERWRITE);
+
+        JobExecutionResult jobExecutionResult = remaining.getExecutionEnvironment().execute();
+        System.out.println(jobExecutionResult.getNetRuntime(TimeUnit.SECONDS));
 
 //        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
 //
