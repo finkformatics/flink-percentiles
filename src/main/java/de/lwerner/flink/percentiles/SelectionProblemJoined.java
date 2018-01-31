@@ -11,6 +11,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.fs.FileSystem;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class SelectionProblemJoined {
     private long count;
     private long countThreshold;
 
-    public void solve() throws Exception {
+    public void solve() {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         DataSet<Float> dataSet = env.readFileOfPrimitives(path, Float.class);
@@ -68,8 +69,7 @@ public class SelectionProblemJoined {
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        List<Tuple3<Float, Long, Long>> remainingCollected = remaining.collect();
-        System.out.println(remainingCollected.get(0));
+        remaining.writeAsCsv(path + "_result", FileSystem.WriteMode.OVERWRITE);
 
 //        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
 //
