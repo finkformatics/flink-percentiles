@@ -28,6 +28,16 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
     private RedisCredentials redisCredentials;
 
     /**
+     * The data count
+     */
+    private long count;
+
+    /**
+     * Value for k if present
+     */
+    private long k;
+
+    /**
      * Constructor to set the redis credentials
      *
      * @param redisCredentials the redis credentials
@@ -36,14 +46,28 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
         this.redisCredentials = redisCredentials;
     }
 
+    /**
+     * Default constructor
+     */
+    public SolveRemainingMapPartition(long count, long k) {
+        this(null);
+
+        this.count = count;
+        this.k = k;
+    }
+
     @Override
     public void open(Configuration parameters) {
-        redisAdapter = AbstractRedisAdapter.factory(redisCredentials);
+        if (redisCredentials != null) {
+            redisAdapter = AbstractRedisAdapter.factory(redisCredentials);
+        }
     }
 
     @Override
     public void close() {
-        redisAdapter.close();
+        if (redisCredentials != null) {
+            redisAdapter.close();
+        }
     }
 
     @Override
@@ -52,7 +76,7 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
 
         values.forEach(valuesList::add);
 
-        if (redisAdapter.getResultFound()) {
+        if (redisCredentials != null && redisAdapter.getResultFound()) {
             // Result was found already, just put it into the collector
             out.collect(new Tuple1<>(redisAdapter.getResult()));
         } else {
@@ -60,7 +84,13 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
                 throw new IllegalStateException("The remaining elements should never be empty! Please check the code!");
             }
 
-            long k = redisAdapter.getK();
+            long k;
+            if (redisCredentials != null) {
+                k = redisAdapter.getK();
+            } else {
+                k = (long)Math.ceil((valuesList.size() / (double)count) * this.k);
+            }
+
             if (valuesList.size() < k) {
                 throw new IllegalStateException("The remaining elements are less than k. This should never happen! Please check the code! Remaining size: " + valuesList.size() + ", k: " + k);
             }
@@ -68,4 +98,5 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
             out.collect(valuesList.get((int)k - 1));
         }
     }
+
 }

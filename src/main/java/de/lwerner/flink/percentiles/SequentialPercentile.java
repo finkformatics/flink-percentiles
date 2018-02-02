@@ -45,7 +45,6 @@ public class SequentialPercentile extends AbstractPercentile {
         getTimer().stopTimer();
 
         Result resultReport = new Result();
-        resultReport.setResult(result);
         resultReport.setP(getP());
         resultReport.setK(getK());
 

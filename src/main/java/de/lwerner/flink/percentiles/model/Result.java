@@ -28,11 +28,6 @@ public class Result {
     private long t;
 
     /**
-     * Result value
-     */
-    private float result;
-
-    /**
      * The result value
      */
     private DataSet<Tuple1<Float>> solution;
@@ -89,24 +84,6 @@ public class Result {
      */
     public void setK(long k) {
         this.k = k;
-    }
-
-    /**
-     * Get result
-     *
-     * @return result
-     */
-    public float getResult() {
-        return result;
-    }
-
-    /**
-     * Set result
-     *
-     * @param result result
-     */
-    public void setResult(float result) {
-        this.result = result;
     }
 
     /**

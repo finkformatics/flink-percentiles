@@ -49,14 +49,11 @@ public class ApproximativePercentile extends AbstractPercentile {
     public void solve() throws Exception {
         approximativeSelectionProblem.solve();
 
-        float result = approximativeSelectionProblem.getResult();
+        Result result = approximativeSelectionProblem.getResult();
 
-        Result resultReport = new Result();
-        resultReport.setResult(result);
-        resultReport.setP(getP());
-        resultReport.setK(getK());
+        result.setP(getP());
 
-        getSink().processResult(resultReport);
+        getSink().processResult(result);
     }
 
     /**
