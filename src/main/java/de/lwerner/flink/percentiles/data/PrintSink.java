@@ -15,9 +15,13 @@ public class PrintSink extends AbstractSink {
 
     @Override
     public void processResult(Result result) throws Exception {
-        DataSet<Tuple4<Long, Integer, Long, Float>> resultInformation = solutionDataSetToTuple(result);
-        // Here we just print the result
-        resultInformation.print();
+        if (result.getSolution() != null) {
+            DataSet<Tuple4<Long, Integer, Long, Float>> resultInformation = solutionDataSetToTuple(result);
+            // Here we just print the result
+            resultInformation.print();
+        } else {
+            System.out.println(result);
+        }
     }
 
 }

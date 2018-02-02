@@ -33,6 +33,11 @@ public class Result {
     private DataSet<Tuple1<Float>> solution;
 
     /**
+     * The actual result value
+     */
+    private float value;
+
+    /**
      * Get the t value
      *
      * @return the t value
@@ -102,6 +107,29 @@ public class Result {
      */
     public void setSolution(DataSet<Tuple1<Float>> solution) {
         this.solution = solution;
+    }
+
+    /**
+     * Get the value
+     *
+     * @return the value
+     */
+    public float getValue() {
+        return value;
+    }
+
+    /**
+     * Set the value
+     *
+     * @param value the value to set
+     */
+    public void setValue(float value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("(%d, %d, %d, %f)", p, k, t, value);
     }
 
 }
