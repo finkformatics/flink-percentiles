@@ -55,7 +55,7 @@ public class HdfsSource implements SourceInterface {
     }
 
     @Override
-    public DataSet<Tuple1<Float>> getDataSet() throws Exception {
+    public DataSet<Tuple1<Float>> getDataSet() {
         if (dataSet == null) {
             dataSet = env.readFileOfPrimitives(path, Float.class)
                     .map(new InputToTupleMapFunction());

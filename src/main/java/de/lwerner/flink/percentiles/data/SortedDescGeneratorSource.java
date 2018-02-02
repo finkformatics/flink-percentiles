@@ -8,7 +8,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,13 +49,13 @@ public class SortedDescGeneratorSource implements SourceInterface, FlushListener
     }
 
     @Override
-    public DataSet<Tuple1<Float>> getDataSet() throws Exception {
+    public DataSet<Tuple1<Float>> getDataSet() {
         return env.fromCollection(getValues())
                 .map(new InputToTupleMapFunction());
     }
 
     @Override
-    public List<Float> getValues() throws Exception {
+    public List<Float> getValues() {
         if (values == null) {
             SortedDescGenerator generator = new SortedDescGenerator((int)n);
             generator.addFlushListener(this);

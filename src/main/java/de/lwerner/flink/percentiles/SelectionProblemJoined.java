@@ -14,7 +14,6 @@ import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,7 +66,7 @@ public class SelectionProblemJoined {
                 .withBroadcastSet(weightedMedian, "weightedMedian");
 
         DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> terminationCriterion = decisionBase
-                .filter(new TerminationCriterionFilterFunction(countThreshold));
+                .filter(new TerminationCriterionFilterFunction(getCountThreshold()));
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
@@ -90,7 +89,7 @@ public class SelectionProblemJoined {
 //        result = quickSelect.select(values, (int)k - 1);
 //
 //        if (useSink) {
-//            ResultReport resultReport = new ResultReport();
+//            Result resultReport = new Result();
 //            resultReport.setK(getK());
 //            resultReport.setResults(new float[]{result});
 //
@@ -123,11 +122,11 @@ public class SelectionProblemJoined {
         this.count = count;
     }
 
-    public long getCountThreshold() {
+    private long getCountThreshold() {
         return countThreshold;
     }
 
-    public void setCountThreshold(long countThreshold) {
+    private void setCountThreshold(long countThreshold) {
         this.countThreshold = countThreshold;
     }
 

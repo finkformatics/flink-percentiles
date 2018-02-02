@@ -4,7 +4,7 @@ import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.math.QuickSelect;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 import org.apache.flink.api.common.functions.MapPartitionFunction;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -20,6 +20,7 @@ import java.util.TreeMap;
  * Calculates an approximative selection over a huge amount of values.
  *
  * @author Lukas Werner
+ * @todo Implement new method
  */
 public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
 
@@ -43,10 +44,10 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
      *
      * @param source the data source
      * @param sink   the data sink
-     * @param k      the ranks
+     * @param k      the rank
      * @param t      serial computation threshold
      */
-    public ApproximativeSelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
+    public ApproximativeSelectionProblem(SourceInterface source, SinkInterface sink, long k, long t) {
         this(source, sink, k, t, true);
     }
 
@@ -55,11 +56,11 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
      *
      * @param source  the data source
      * @param sink    the data sink
-     * @param k       the ranks
+     * @param k       the rank
      * @param t       serial computation threshold
      * @param useSink use the sink?
      */
-    public ApproximativeSelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t, boolean useSink) {
+    public ApproximativeSelectionProblem(SourceInterface source, SinkInterface sink, long k, long t, boolean useSink) {
         super(source, sink, k, t);
 
         this.useSink = useSink;
@@ -70,7 +71,7 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
      *
      * @return the sample size
      */
-    public long getSampleSize() {
+    private long getSampleSize() {
         return sampleSize;
     }
 
@@ -112,7 +113,7 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
             sampleList.add(t.f0);
         }
 
-        int modifiedK = (int)Math.ceil((getSampleSize() / (double)getSource().getCount()) * getFirstK());
+        int modifiedK = (int)Math.ceil((getSampleSize() / (double)getSource().getCount()) * getK());
 
         QuickSelect quickSelect = new QuickSelect();
         float result = quickSelect.select(sampleList, modifiedK - 1);
@@ -120,9 +121,9 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
         getTimer().stopTimer();
 
         if (useSink) {
-            ResultReport resultReport = new ResultReport();
+            Result resultReport = new Result();
             resultReport.setK(getK());
-            resultReport.setResults(new float[]{result});
+            resultReport.setResult(result);
             resultReport.setTimerResults(getTimer().getTimerResults());
 
             // Sink for the result
@@ -162,7 +163,7 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
         long k = Long.valueOf(params.getRequired("k"));
         long s = Long.valueOf(params.getRequired("sample-size"));
 
-        ApproximativeSelectionProblem algorithm = factory(ApproximativeSelectionProblem.class, params, new long[]{k});
+        ApproximativeSelectionProblem algorithm = factory(ApproximativeSelectionProblem.class, params, k);
         algorithm.setSampleSize(s);
         algorithm.solve();
     }
@@ -196,7 +197,7 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
         }
 
         @Override
-        public void mapPartition(Iterable<Tuple1<Float>> values, Collector<Tuple2<Float, Float>> out) throws Exception {
+        public void mapPartition(Iterable<Tuple1<Float>> values, Collector<Tuple2<Float, Float>> out) {
             TreeMap<Float, Tuple2<Float, Float>> sortedMap = new TreeMap<>();
 
             for (Tuple1<Float> t: values) {

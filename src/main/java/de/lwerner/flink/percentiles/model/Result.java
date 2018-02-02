@@ -1,41 +1,54 @@
 package de.lwerner.flink.percentiles.model;
 
+import org.apache.flink.api.java.DataSet;
+import org.apache.flink.api.java.tuple.Tuple1;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class ResultReport
- *
+ * Class Result
+ * <p>
  * Holds information about the solved algorithm.
  *
  * @author Lukas Werner
  */
-public class ResultReport {
+public class Result {
 
     /**
-     * The input p values
+     * The input p value
      */
-    private int[] p;
+    private Integer p;
 
     /**
-     * The input k values
+     * The input k value
      */
-    private long[] k;
+    private Long k;
 
     /**
      * The input t value
      */
-    private long t;
+    private Long t;
 
     /**
      * The number of iterations needed
      */
-    private int numberOfIterations;
+    private Integer numberOfIterations;
 
     /**
      * Results from timer
      */
     private HashMap<String, Long> timerResults;
+
+    /**
+     * Result value
+     */
+    private Float result;
+
+    /**
+     * The result value
+     */
+    private DataSet<Tuple1<Float>> solution;
 
     /**
      * Get the t value
@@ -74,44 +87,38 @@ public class ResultReport {
     }
 
     /**
-
-     * The result values
-     */
-    private float[] results;
-
-    /**
-     * Get p values
+     * Get p value
      *
-     * @return p values
+     * @return p value
      */
-    public int[] getP() {
+    public int getP() {
         return p;
     }
 
     /**
-     * Set p values
+     * Set p value
      *
-     * @param p p values
+     * @param p p value
      */
-    public void setP(int[] p) {
+    public void setP(int p) {
         this.p = p;
     }
 
     /**
-     * Get k values
+     * Get k value
      *
-     * @return k values
+     * @return k value
      */
-    public long[] getK() {
+    public long getK() {
         return k;
     }
 
     /**
-     * Set k values
+     * Set k value
      *
-     * @param k k values
+     * @param k k value
      */
-    public void setK(long[] k) {
+    public void setK(long k) {
         this.k = k;
     }
 
@@ -134,21 +141,39 @@ public class ResultReport {
     }
 
     /**
-     * Get results
+     * Get result
      *
-     * @return results
+     * @return result
      */
-    public float[] getResults() {
-        return results;
+    public float getResult() {
+        return result;
     }
 
     /**
-     * Set results
+     * Set result
      *
-     * @param results results
+     * @param result result
      */
-    public void setResults(float[] results) {
-        this.results = results;
+    public void setResult(float result) {
+        this.result = result;
+    }
+
+    /**
+     * Get solution data set
+     *
+     * @return the solution data set
+     */
+    public DataSet<Tuple1<Float>> getSolution() {
+        return solution;
+    }
+
+    /**
+     * Set solution data set
+     *
+     * @param solution solution data set to set
+     */
+    public void setSolution(DataSet<Tuple1<Float>> solution) {
+        this.solution = solution;
     }
 
     @Override
@@ -156,34 +181,22 @@ public class ResultReport {
         StringBuilder sb = new StringBuilder();
 
         sb.append("Result Report:\n");
-        if (p != null && p.length > 0) {
-            for (int i = 0; i < p.length; i++) {
-                sb.append("p[");
-                sb.append(i);
-                sb.append("] = ");
-                sb.append(p[i]);
-                sb.append('\n');
-            }
+        if (p != null) {
+            sb.append("p = ");
+            sb.append(p);
+            sb.append('\n');
         }
 
-        if (k != null && k.length > 0) {
-            for (int i = 0; i < k.length; i++) {
-                sb.append("k[");
-                sb.append(i);
-                sb.append("] = ");
-                sb.append(k[i]);
-                sb.append('\n');
-            }
+        if (k != null) {
+            sb.append("k = ");
+            sb.append(k);
+            sb.append('\n');
         }
 
-        if (results != null && results.length > 0) {
-            for (int i = 0; i < results.length; i++) {
-                sb.append("result[");
-                sb.append(i);
-                sb.append("] = ");
-                sb.append(results[i]);
-                sb.append('\n');
-            }
+        if (result != null) {
+            sb.append("result = ");
+            sb.append(result);
+            sb.append('\n');
         }
 
         if (timerResults != null) {

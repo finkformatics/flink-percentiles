@@ -4,10 +4,9 @@ import de.lwerner.flink.percentiles.algorithm.AbstractSelectionProblem;
 import de.lwerner.flink.percentiles.data.*;
 import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.redis.*;
-import de.lwerner.flink.percentiles.math.QuickSelect;
 import de.lwerner.flink.percentiles.model.DecisionModel;
 import de.lwerner.flink.percentiles.model.RedisCredentials;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 import de.lwerner.flink.percentiles.redis.AbstractRedisAdapter;
 import de.lwerner.flink.percentiles.util.AppProperties;
 import de.lwerner.flink.percentiles.util.PropertyName;
@@ -16,8 +15,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.*;
 import org.apache.flink.api.java.utils.ParameterTool;
-
-import java.util.List;
 
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
@@ -34,9 +31,9 @@ public class SelectionProblem extends AbstractSelectionProblem {
     private boolean useSink;
 
     /**
-     * Store result
+     * The result model
      */
-    private float result;
+    private Result result;
 
     /**
      * Number of iterations needed
@@ -48,10 +45,10 @@ public class SelectionProblem extends AbstractSelectionProblem {
      *
      * @param source the data source
      * @param sink the data sink
-     * @param k the ranks
+     * @param k the rank
      * @param t serial computation threshold
      */
-    public SelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
+    public SelectionProblem(SourceInterface source, SinkInterface sink, long k, long t) {
         this(source, sink, k, t, true);
     }
 
@@ -60,22 +57,22 @@ public class SelectionProblem extends AbstractSelectionProblem {
      *
      * @param source the data source
      * @param sink the data sink
-     * @param k the ranks
+     * @param k the rank
      * @param t serial computation threshold
      * @param useSink directly use sink?
      */
-    public SelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t, boolean useSink) {
+    public SelectionProblem(SourceInterface source, SinkInterface sink, long k, long t, boolean useSink) {
         super(source, sink, k, t);
 
         this.useSink = useSink;
     }
 
     /**
-     * Get result
+     * Get the result model
      *
-     * @return result
+     * @return the result model
      */
-    public float getResult() {
+    public Result getResult() {
         return result;
     }
 
@@ -97,8 +94,6 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // Holds important information just as how to connect to redis
         AppProperties properties = AppProperties.getInstance();
 
-        getTimer().startTimer();
-
         RedisCredentials redisCredentials = new RedisCredentials();
         redisCredentials.setAdapter(properties.getProperty(PropertyName.REDIS_ADAPTER));
         redisCredentials.setHost(properties.getProperty(PropertyName.REDIS_HOST));
@@ -110,7 +105,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
         redisAdapter.reset();
 
         // Initiate the values on redis
-        redisAdapter.addK(getFirstK());
+        redisAdapter.setK(getK());
         redisAdapter.setN(getSource().getCount());
         redisAdapter.setT(getT());
         redisAdapter.setNumberOfIterations(0);
@@ -165,41 +160,17 @@ public class SelectionProblem extends AbstractSelectionProblem {
                 .sortPartition(0, Order.ASCENDING).setParallelism(1)
                 .mapPartition(new SolveRemainingMapPartition(redisCredentials)).setParallelism(1);
 
-        List<Tuple1<Float>> solutionList = solution.collect();
-        if (!solutionList.isEmpty()) {
-            System.out.println(solutionList.get(0));
+        result = new Result();
+        result.setSolution(solution);
+        result.setK(getK());
+        result.setNumberOfIterations(redisAdapter.getNumberOfIterations());
+        result.setT(getT());
+
+        this.iterationsNeeded = redisAdapter.getNumberOfIterations();
+
+        if (useSink) {
+            getSink().processResult(result);
         }
-
-
-//        getTimer().startTimer("actual");
-//        List<Float> remainingList = remaining
-//                .map(new RemainingValuesMapFunction())
-//                .collect();
-//        getTimer().stopTimer("actual");
-//
-//        float result;
-//        if (remainingList.isEmpty()) {
-//            result = redisAdapter.getResult();
-//        } else {
-//            QuickSelect quickSelect = new QuickSelect();
-//            result = quickSelect.select(remainingList, (int)redisAdapter.getNthK(1) - 1);
-//        }
-//
-//        getTimer().stopTimer();
-//
-//        if (useSink) {
-//            ResultReport resultReport = new ResultReport();
-//            resultReport.setK(getK());
-//            resultReport.setResults(new float[]{result});
-//            resultReport.setT(getT());
-//            resultReport.setNumberOfIterations(redisAdapter.getNumberOfIterations());
-//
-//            // Sink for the result
-//            getSink().processResult(resultReport);
-//        } else {
-//            this.result = result;
-//            this.iterationsNeeded = redisAdapter.getNumberOfIterations();
-//        }
 
         redisAdapter.close();
     }
@@ -217,7 +188,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
 
         long k = Long.valueOf(params.getRequired("k"));
 
-        SelectionProblem algorithm = factory(SelectionProblem.class, params, new long[]{k});
+        SelectionProblem algorithm = factory(SelectionProblem.class, params, k);
         algorithm.solve();
     }
 

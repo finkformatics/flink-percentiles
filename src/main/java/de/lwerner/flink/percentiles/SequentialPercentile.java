@@ -4,7 +4,7 @@ import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.math.QuickSelect;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 import java.util.List;
@@ -15,6 +15,7 @@ import java.util.List;
  * Calculates a certain percentile sequentially.
  *
  * @author Lukas Werner
+ * @todo Implement it in a new way
  */
 public class SequentialPercentile extends AbstractPercentile {
 
@@ -43,11 +44,11 @@ public class SequentialPercentile extends AbstractPercentile {
         float result = quickSelect.select(values, getK() - 1);
         getTimer().stopTimer();
 
-        ResultReport resultReport = new ResultReport();
+        Result resultReport = new Result();
         resultReport.setTimerResults(getTimer().getTimerResults());
-        resultReport.setResults(new float[]{result});
-        resultReport.setP(new int[]{getP()});
-        resultReport.setK(new long[]{getK()});
+        resultReport.setResult(result);
+        resultReport.setP(getP());
+        resultReport.setK(getK());
 
         getSink().processResult(resultReport);
     }

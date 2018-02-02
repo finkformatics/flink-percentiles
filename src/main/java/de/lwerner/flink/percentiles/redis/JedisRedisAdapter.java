@@ -43,31 +43,15 @@ public class JedisRedisAdapter extends AbstractRedisAdapter {
     public void setN(long n) {
         JedisHelper.setN(jedis, n);
     }
+
     @Override
-    public void addK(long k) {
-        JedisHelper.incrementNumberOfKValues(jedis);
-        JedisHelper.setK(jedis, k, JedisHelper.getNumberOfKValues(jedis));
+    public void setK(long k) {
+        JedisHelper.setK(jedis, k);
     }
 
     @Override
-    public long[] getAllK() {
-        long[] allK = new long[JedisHelper.getNumberOfKValues(jedis)];
-
-        for (int i = 1; i <= JedisHelper.getNumberOfKValues(jedis); i++) {
-            allK[i - 1] = JedisHelper.getK(jedis, i);
-        }
-
-        return allK;
-    }
-
-    @Override
-    public long getNthK(int n) {
-        return JedisHelper.getK(jedis, n);
-    }
-
-    @Override
-    public void setNthK(long k, int n) {
-        JedisHelper.setK(jedis, k, n);
+    public long getK() {
+        return JedisHelper.getK(jedis);
     }
 
     @Override
@@ -117,6 +101,6 @@ public class JedisRedisAdapter extends AbstractRedisAdapter {
 
     @Override
     public void reset() {
-        JedisHelper.setNumberOfKValues(jedis, 0);
+        // Do nothing
     }
 }

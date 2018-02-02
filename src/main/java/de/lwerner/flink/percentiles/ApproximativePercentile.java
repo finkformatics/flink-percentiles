@@ -3,7 +3,7 @@ package de.lwerner.flink.percentiles;
 import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 import de.lwerner.flink.percentiles.timeMeasurement.Timer;
 import org.apache.flink.api.java.utils.ParameterTool;
 
@@ -33,7 +33,7 @@ public class ApproximativePercentile extends AbstractPercentile {
         float np = source.getCount() / 100f;
         setK((int)Math.ceil(np * p));
 
-        approximativeSelectionProblem = new ApproximativeSelectionProblem(source, sink, new long[]{getK()}, t, false);
+        approximativeSelectionProblem = new ApproximativeSelectionProblem(source, sink, getK(), t, false);
     }
 
     /**
@@ -41,7 +41,7 @@ public class ApproximativePercentile extends AbstractPercentile {
      *
      * @return algorithm solver
      */
-    public ApproximativeSelectionProblem getApproximativeSelectionProblem() {
+    private ApproximativeSelectionProblem getApproximativeSelectionProblem() {
         return approximativeSelectionProblem;
     }
 
@@ -53,11 +53,11 @@ public class ApproximativePercentile extends AbstractPercentile {
 
         Timer timer = approximativeSelectionProblem.getTimer();
 
-        ResultReport resultReport = new ResultReport();
+        Result resultReport = new Result();
         resultReport.setTimerResults(timer.getTimerResults());
-        resultReport.setResults(new float[]{result});
-        resultReport.setP(new int[]{getP()});
-        resultReport.setK(new long[]{getK()});
+        resultReport.setResult(result);
+        resultReport.setP(getP());
+        resultReport.setK(getK());
 
         getSink().processResult(resultReport);
     }

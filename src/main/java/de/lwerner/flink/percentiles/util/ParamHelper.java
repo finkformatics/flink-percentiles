@@ -68,12 +68,9 @@ public class ParamHelper {
 
         String dataSink = params.get("sink", "print");
 
-        String fullStr = params.get("full", "false");
-        boolean full = fullStr.equals("true");
-
         switch (dataSink) {
             case "print":
-                sink = new PrintSink(full);
+                sink = new PrintSink();
                 break;
             case "hdfs":
                 String path = params.getRequired("output-path");
@@ -86,7 +83,7 @@ public class ParamHelper {
                     throw new IllegalArgumentException("FS default name must start with hdfs://");
                 }
 
-                sink = new HdfsSink(fsDefaultName, path, full);
+                sink = new HdfsSink(fsDefaultName, path);
                 break;
             default:
                 throw new IllegalArgumentException("You must provide an processResult: --processResult <print|hdfs>");

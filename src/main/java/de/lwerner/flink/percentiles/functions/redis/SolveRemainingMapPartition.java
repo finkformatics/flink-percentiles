@@ -60,11 +60,12 @@ public class SolveRemainingMapPartition extends RichMapPartitionFunction<Tuple1<
                 throw new IllegalStateException("The remaining elements should never be empty! Please check the code!");
             }
 
-            if (valuesList.size() < redisAdapter.getNthK(1)) {
-                throw new IllegalStateException("The remaining elements are less than k. This should never happen! Please check the code! Remaining size: " + valuesList.size() + ", k: " + redisAdapter.getNthK(1));
+            long k = redisAdapter.getK();
+            if (valuesList.size() < k) {
+                throw new IllegalStateException("The remaining elements are less than k. This should never happen! Please check the code! Remaining size: " + valuesList.size() + ", k: " + k);
             }
 
-            out.collect(valuesList.get((int)redisAdapter.getNthK(1) - 1));
+            out.collect(valuesList.get((int)k - 1));
         }
     }
 }

@@ -1,6 +1,6 @@
 package de.lwerner.flink.percentiles.data;
 
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 
 /**
  * Class PrintSink
@@ -11,27 +11,10 @@ import de.lwerner.flink.percentiles.model.ResultReport;
  */
 public class PrintSink implements SinkInterface {
 
-    /**
-     * Full report? Or just the value?
-     */
-    private boolean full;
-
-    /**
-     * Set value for full report or not
-     *
-     * @param full true for full report
-     */
-    public PrintSink(boolean full) {
-        this.full = full;
-    }
-
     @Override
-    public void processResult(ResultReport resultReport) {
-        if (full) {
-            System.out.println(resultReport);
-        } else {
-            System.out.println(resultReport.getResults()[0]);
-        }
+    public void processResult(Result result) throws Exception {
+        // Here we just print the result
+        result.getSolution().print();
     }
 
 }
