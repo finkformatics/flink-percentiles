@@ -1,23 +1,24 @@
 package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
-import de.lwerner.flink.percentiles.data.*;
+import de.lwerner.flink.percentiles.data.SinkInterface;
+import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.model.Result;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 /**
- * Class Percentile
+ * Class PercentileWithoutRedis
  *
  * Calculates a certain percentile over a huge data set using the distributed selection problem algorithm.
  *
  * @author Lukas Werner
  */
-public class Percentile extends AbstractPercentile {
+public class PercentileWithoutRedis extends AbstractPercentile {
 
     /**
      * Selection problem solver
      */
-    private SelectionProblem selectionProblem;
+    private SelectionProblemWithoutRedis selectionProblemWithoutRedis;
 
     /**
      * Percentile constructor. Sets all the required values and calculates k from p.
@@ -27,20 +28,20 @@ public class Percentile extends AbstractPercentile {
      * @param p percentile
      * @param t threshold
      */
-    public Percentile(SourceInterface source, SinkInterface sink, int p, long t) {
+    public PercentileWithoutRedis(SourceInterface source, SinkInterface sink, int p, long t) {
         super(source, sink, p, t);
 
         float np = source.getCount() / 100f;
         setK((int)Math.ceil(np * p));
 
-        selectionProblem = new SelectionProblem(source, sink, getK(), t, false);
+        selectionProblemWithoutRedis = new SelectionProblemWithoutRedis(source, sink, getK(), t, false);
     }
 
     @Override
     public void solve() throws Exception {
-        selectionProblem.solve();
+        selectionProblemWithoutRedis.solve();
 
-        Result result = selectionProblem.getResult();
+        Result result = selectionProblemWithoutRedis.getResult();
         result.setP(getP());
 
         getSink().processResult(result);
@@ -59,7 +60,7 @@ public class Percentile extends AbstractPercentile {
 
         int p = Integer.valueOf(params.getRequired("p"));
 
-        Percentile algorithm = factory(Percentile.class, params, p);
+        PercentileWithoutRedis algorithm = factory(PercentileWithoutRedis.class, params, p);
         algorithm.solve();
     }
 

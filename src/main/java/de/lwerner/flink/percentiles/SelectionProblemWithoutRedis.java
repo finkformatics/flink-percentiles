@@ -5,6 +5,8 @@ import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.join.*;
+import de.lwerner.flink.percentiles.model.Result;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.operators.IterativeDataSet;
@@ -17,7 +19,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
  * in a distributed or parallel environment, this has to be done differently, when focus lies on performance.
  *
  * @author Lukas Werner
- * @todo implement it the new way
  */
 public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
 
@@ -29,7 +30,7 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
     /**
      * Store result
      */
-    private float result;
+    private Result result;
 
     /**
      * SelectionProblemWithoutRedis constructor, sets the required values
@@ -63,7 +64,7 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
      *
      * @return result
      */
-    public float getResult() {
+    public Result getResult() {
         return result;
     }
 
@@ -89,45 +90,35 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
                 .withBroadcastSet(weightedMedian, "weightedMedian")
                 .reduce(new CalculateLessEqualAndGreaterReduceFunction());
 
-        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> decisionBase = leg
-                .map(new DecideWhatToDoMapFunction())
-                .withBroadcastSet(weightedMedian, "weightedMedian");
+        DataSet<Tuple3<Boolean, Long, Long>> decisionBase = leg
+                .map(new DecideWhatToDoMapFunction());
 
         DataSet<Tuple3<Float, Long, Long>> iteration = initial
-                .filter(new DiscardValuesFlatMapFunction())
+                .flatMap(new DiscardValuesFlatMapFunction())
                 .withBroadcastSet(decisionBase, "decisionBase")
                 .withBroadcastSet(weightedMedian, "weightedMedian");
 
-        // TODO: Problem: How to conditionally reduce to 1 element, if the weighted median is the found result
+        // Please note: The advantage of the algorithm, to stop when the result was found already, cannot be applied here
 
-        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> terminationCriterion = decisionBase
+        DataSet<Tuple3<Boolean, Long, Long>> terminationCriterion = decisionBase
                 .filter(new TerminationCriterionFilterFunction(getT()));
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        remaining.print();
+        DataSet<Tuple1<Float>> solution = remaining
+                .partitionByHash(0).setParallelism(1)
+                .sortPartition(0, Order.ASCENDING).setParallelism(1)
+                .mapPartition(new SolveRemainingMapPartition()).setParallelism(1)
+                .map((MapFunction<Tuple3<Float, Long, Long>, Tuple1<Float>>) value -> new Tuple1<>(value.f0));
 
-//        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
-//
-//        List<Float> values = remainingValues.stream().map(t -> t.f0).collect(Collectors.toList());
-//        long k = remainingValues.get(0).f1;
+        result = new Result();
+        result.setSolution(solution);
+        result.setK(getK());
+        result.setT(getT());
 
-        // TODO: Catch the case if we have an empty list
-
-//        System.out.println(remainingValues.get(0));
-//        System.out.println(k);
-//
-//        QuickSelect quickSelect = new QuickSelect();
-//        result = quickSelect.select(values, (int)k - 1);
-//
-//        if (useSink) {
-//            Result resultReport = new Result();
-//            resultReport.setK(getK());
-//            resultReport.setResults(new float[]{result});
-//
-//            // Sink for the result
-//            getSink().processResult(resultReport);
-//        }
+        if (useSink) {
+            getSink().processResult(result);
+        }
     }
 
     /**
