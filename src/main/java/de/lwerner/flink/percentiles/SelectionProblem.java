@@ -160,35 +160,46 @@ public class SelectionProblem extends AbstractSelectionProblem {
         // Iterate, until finish condition is met
         DataSet<Tuple1<Float>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        getTimer().startTimer("actual");
-        List<Float> remainingList = remaining
-                .map(new RemainingValuesMapFunction())
-                .collect();
-        getTimer().stopTimer("actual");
+        DataSet<Tuple1<Float>> solution = remaining
+                .partitionByHash(0).setParallelism(1)
+                .sortPartition(0, Order.ASCENDING).setParallelism(1)
+                .mapPartition(new SolveRemainingMapPartition(redisCredentials)).setParallelism(1);
 
-        float result;
-        if (remainingList.isEmpty()) {
-            result = redisAdapter.getResult();
-        } else {
-            QuickSelect quickSelect = new QuickSelect();
-            result = quickSelect.select(remainingList, (int)redisAdapter.getNthK(1) - 1);
+        List<Tuple1<Float>> solutionList = solution.collect();
+        if (!solutionList.isEmpty()) {
+            System.out.println(solutionList.get(0));
         }
 
-        getTimer().stopTimer();
 
-        if (useSink) {
-            ResultReport resultReport = new ResultReport();
-            resultReport.setK(getK());
-            resultReport.setResults(new float[]{result});
-            resultReport.setT(getT());
-            resultReport.setNumberOfIterations(redisAdapter.getNumberOfIterations());
-
-            // Sink for the result
-            getSink().processResult(resultReport);
-        } else {
-            this.result = result;
-            this.iterationsNeeded = redisAdapter.getNumberOfIterations();
-        }
+//        getTimer().startTimer("actual");
+//        List<Float> remainingList = remaining
+//                .map(new RemainingValuesMapFunction())
+//                .collect();
+//        getTimer().stopTimer("actual");
+//
+//        float result;
+//        if (remainingList.isEmpty()) {
+//            result = redisAdapter.getResult();
+//        } else {
+//            QuickSelect quickSelect = new QuickSelect();
+//            result = quickSelect.select(remainingList, (int)redisAdapter.getNthK(1) - 1);
+//        }
+//
+//        getTimer().stopTimer();
+//
+//        if (useSink) {
+//            ResultReport resultReport = new ResultReport();
+//            resultReport.setK(getK());
+//            resultReport.setResults(new float[]{result});
+//            resultReport.setT(getT());
+//            resultReport.setNumberOfIterations(redisAdapter.getNumberOfIterations());
+//
+//            // Sink for the result
+//            getSink().processResult(resultReport);
+//        } else {
+//            this.result = result;
+//            this.iterationsNeeded = redisAdapter.getNumberOfIterations();
+//        }
 
         redisAdapter.close();
     }
