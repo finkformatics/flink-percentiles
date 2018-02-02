@@ -36,11 +36,6 @@ public class SelectionProblem extends AbstractSelectionProblem {
     private Result result;
 
     /**
-     * Number of iterations needed
-     */
-    private int iterationsNeeded = 0;
-
-    /**
      * SelectionProblem constructor, sets the required values
      *
      * @param source the data source
@@ -74,15 +69,6 @@ public class SelectionProblem extends AbstractSelectionProblem {
      */
     public Result getResult() {
         return result;
-    }
-
-    /**
-     * Get number of iterations needed
-     *
-     * @return iteration count
-     */
-    public int getIterationsNeeded() {
-        return iterationsNeeded;
     }
 
     /**
@@ -163,10 +149,7 @@ public class SelectionProblem extends AbstractSelectionProblem {
         result = new Result();
         result.setSolution(solution);
         result.setK(getK());
-        result.setNumberOfIterations(redisAdapter.getNumberOfIterations());
         result.setT(getT());
-
-        this.iterationsNeeded = redisAdapter.getNumberOfIterations();
 
         if (useSink) {
             getSink().processResult(result);

@@ -78,12 +78,7 @@ public class ParamHelper {
                     throw new IllegalArgumentException("Path must start with hdfs://");
                 }
 
-                String fsDefaultName = params.getRequired("fs-default-name");
-                if (!path.startsWith("hdfs://")) {
-                    throw new IllegalArgumentException("FS default name must start with hdfs://");
-                }
-
-                sink = new HdfsSink(fsDefaultName, path);
+                sink = new HdfsSink(path);
                 break;
             default:
                 throw new IllegalArgumentException("You must provide an processResult: --processResult <print|hdfs>");

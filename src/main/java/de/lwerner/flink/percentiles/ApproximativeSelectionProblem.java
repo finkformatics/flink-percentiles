@@ -124,7 +124,6 @@ public class ApproximativeSelectionProblem extends AbstractSelectionProblem {
             Result resultReport = new Result();
             resultReport.setK(getK());
             resultReport.setResult(result);
-            resultReport.setTimerResults(getTimer().getTimerResults());
 
             // Sink for the result
             getSink().processResult(resultReport);

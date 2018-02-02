@@ -51,10 +51,7 @@ public class ApproximativePercentile extends AbstractPercentile {
 
         float result = approximativeSelectionProblem.getResult();
 
-        Timer timer = approximativeSelectionProblem.getTimer();
-
         Result resultReport = new Result();
-        resultReport.setTimerResults(timer.getTimerResults());
         resultReport.setResult(result);
         resultReport.setP(getP());
         resultReport.setK(getK());
