@@ -5,6 +5,8 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple4;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract sink to provide methods to all sinks
@@ -12,6 +14,18 @@ import org.apache.flink.api.java.tuple.Tuple4;
  * @author Lukas Werner
  */
 public abstract class AbstractSink implements SinkInterface {
+
+    /**
+     * The application logger
+     */
+    protected Logger logger;
+
+    /**
+     * Constructor to initialize logger
+     */
+    public AbstractSink() {
+        logger = LoggerFactory.getLogger(getClass());
+    }
 
     /**
      * Map solution data set to a tuple data set with all information

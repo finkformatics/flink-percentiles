@@ -1,6 +1,7 @@
 package de.lwerner.flink.percentiles.data;
 
 import de.lwerner.flink.percentiles.model.Result;
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.hadoop.conf.Configuration;
@@ -11,6 +12,7 @@ import org.apache.hadoop.fs.Path;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class HdfsSink
@@ -37,16 +39,19 @@ public class HdfsSink extends AbstractSink {
      * @param path the hdfs path
      */
     public HdfsSink(String fileSystemDefaultName, String path) {
+        super();
+
         this.fileSystemDefaultName = fileSystemDefaultName;
         this.path = path;
     }
 
     @Override
     public void processResult(Result result) throws Exception {
+        JobExecutionResult jobExecutionResult = null;
         if (result.getSolution() != null) {
             DataSet<Tuple4<Long, Integer, Long, Float>> resultInformation = solutionDataSetToTuple(result);
             resultInformation.writeAsCsv(path, org.apache.flink.core.fs.FileSystem.WriteMode.OVERWRITE);
-            resultInformation.getExecutionEnvironment().execute();
+            jobExecutionResult = resultInformation.getExecutionEnvironment().execute();
         } else {
             URI uri = URI.create(path);
             Path path = new Path(uri);
@@ -63,7 +68,9 @@ public class HdfsSink extends AbstractSink {
             writer.close();
         }
 
-        // TODO: Log execution time with result from execute()
+        if (jobExecutionResult != null) {
+            logger.info("Execution time: {} seconds!", jobExecutionResult.getNetRuntime(TimeUnit.SECONDS));
+        }
     }
 
 }

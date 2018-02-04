@@ -13,6 +13,10 @@ import org.apache.flink.api.java.tuple.Tuple4;
  */
 public class PrintSink extends AbstractSink {
 
+    public PrintSink() {
+        super();
+    }
+
     @Override
     public void processResult(Result result) throws Exception {
         if (result.getSolution() != null) {
