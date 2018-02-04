@@ -69,6 +69,23 @@ public class HdfsSource implements SourceInterface {
         return getDataSet().map(new RemainingValuesMapFunction()).collect();
     }
 
+    /**
+     * Gets the values to work with while you can define if it should work also without flink
+     *
+     * @param withoutFlink should it work without flink?
+     *
+     * @return the values
+     *
+     * @throws Exception if something went wrong
+     */
+    public List<Float> getValues(boolean withoutFlink) throws Exception {
+        if (withoutFlink) {
+            // TODO: Manually load the values from hdfs
+        }
+
+        return getValues();
+    }
+
     @Override
     public ExecutionEnvironment getEnv() {
         return env;

@@ -109,7 +109,12 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
                 .partitionByHash(0).setParallelism(1)
                 .sortPartition(0, Order.ASCENDING).setParallelism(1)
                 .mapPartition(new SolveRemainingMapPartition()).setParallelism(1)
-                .map((MapFunction<Tuple3<Float, Long, Long>, Tuple1<Float>>) value -> new Tuple1<>(value.f0));
+                .map(new MapFunction<Tuple3<Float, Long, Long>, Tuple1<Float>>() {
+                    @Override
+                    public Tuple1<Float> map(Tuple3<Float, Long, Long> value) {
+                        return new Tuple1<>(value.f0);
+                    }
+                });
 
         result = new Result();
         result.setSolution(solution);
