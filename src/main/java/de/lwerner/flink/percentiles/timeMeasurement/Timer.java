@@ -14,7 +14,7 @@ public class Timer {
     /**
      * Default timer name
      */
-    private static final String DEFAULT_TIMER_NAME = "default";
+    public static final String DEFAULT_TIMER_NAME = "default";
 
     /**
      * The actual timers (start times)

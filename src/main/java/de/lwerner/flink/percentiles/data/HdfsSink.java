@@ -69,7 +69,7 @@ public class HdfsSink extends AbstractSink {
         }
 
         if (jobExecutionResult != null) {
-            logger.info("Execution time: {} seconds!", jobExecutionResult.getNetRuntime(TimeUnit.SECONDS));
+            logger.info("Execution time: {} milliseconds!", jobExecutionResult.getNetRuntime());
         }
     }
 

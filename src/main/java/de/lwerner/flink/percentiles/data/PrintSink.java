@@ -1,6 +1,7 @@
 package de.lwerner.flink.percentiles.data;
 
 import de.lwerner.flink.percentiles.model.Result;
+import de.lwerner.flink.percentiles.timeMeasurement.Timer;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple4;
 
@@ -25,6 +26,10 @@ public class PrintSink extends AbstractSink {
             resultInformation.print();
         } else {
             System.out.println(result);
+        }
+
+        if (result.getTimerResults() != null && result.getTimerResults().containsKey(Timer.DEFAULT_TIMER_NAME)) {
+            logger.info("Execution time: {} milliseconds!", result.getTimerResults().get(Timer.DEFAULT_TIMER_NAME));
         }
     }
 

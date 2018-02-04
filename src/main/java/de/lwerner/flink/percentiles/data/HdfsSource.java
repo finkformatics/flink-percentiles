@@ -5,7 +5,18 @@ import de.lwerner.flink.percentiles.functions.redis.RemainingValuesMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,10 +32,16 @@ public class HdfsSource implements SourceInterface {
      * The flink env
      */
     private final ExecutionEnvironment env;
+
     /**
      * The hdfs path
      */
     private final String path;
+
+    /**
+     * The hdfs default name
+     */
+    private final String fsDefaultName;
 
     /**
      * The resulting data set (cached for multiple accesses)
@@ -42,11 +59,24 @@ public class HdfsSource implements SourceInterface {
      * @param env the flink env
      * @param path the hdfs path
      * @param count number of values
+     * @param fsDefaultName hdfs default name
      */
-    public HdfsSource(ExecutionEnvironment env, String path, long count) {
+    public HdfsSource(ExecutionEnvironment env, String path, long count, String fsDefaultName) {
         this.env = env;
         this.path = path;
         this.count = count;
+        this.fsDefaultName = fsDefaultName;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param env the flink env
+     * @param path the hdfs path
+     * @param count the number of values
+     */
+    public HdfsSource(ExecutionEnvironment env, String path, long count) {
+        this(env, path, count, null);
     }
 
     @Override
@@ -80,7 +110,26 @@ public class HdfsSource implements SourceInterface {
      */
     public List<Float> getValues(boolean withoutFlink) throws Exception {
         if (withoutFlink) {
-            // TODO: Manually load the values from hdfs
+            URI uri = URI.create(path);
+            Path path = new Path(uri);
+
+            Configuration conf = new Configuration();
+            conf.set("fs.default.name", fsDefaultName);
+
+            FileSystem dfs = FileSystem.get(uri, conf);
+
+            FSDataInputStream in = dfs.open(path);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+
+            List<Float> result = new ArrayList<>((int)getCount());
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.add(Float.parseFloat(line));
+            }
+
+            reader.close();
+            return result;
         }
 
         return getValues();

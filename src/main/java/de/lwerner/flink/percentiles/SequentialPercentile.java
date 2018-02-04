@@ -2,6 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.algorithm.AbstractAlgorithm;
 import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
+import de.lwerner.flink.percentiles.data.HdfsSource;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.math.QuickSelect;
@@ -53,7 +54,13 @@ public class SequentialPercentile extends AbstractAlgorithm {
 
     @Override
     public void solve() throws Exception {
-        List<Float> values = getSource().getValues();
+        List<Float> values;
+        if (getSource() instanceof HdfsSource) {
+            HdfsSource source = (HdfsSource)getSource();
+            values = source.getValues(true);
+        } else {
+            values = getSource().getValues();
+        }
 
         QuickSelect quickSelect = new QuickSelect();
 
@@ -65,6 +72,7 @@ public class SequentialPercentile extends AbstractAlgorithm {
         result.setP(getP());
         result.setK(getK());
         result.setValue(resultValue);
+        result.setTimerResults(getTimer().getTimerResults());
 
         getSink().processResult(result);
     }

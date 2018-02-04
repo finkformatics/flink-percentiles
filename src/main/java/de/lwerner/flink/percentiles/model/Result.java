@@ -3,6 +3,8 @@ package de.lwerner.flink.percentiles.model;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple1;
 
+import java.util.HashMap;
+
 /**
  * Class Result
  * <p>
@@ -36,6 +38,8 @@ public class Result {
      * The actual result value
      */
     private float value;
+
+    private HashMap<String, Long> timerResults;
 
     /**
      * Get the t value
@@ -125,6 +129,24 @@ public class Result {
      */
     public void setValue(float value) {
         this.value = value;
+    }
+
+    /**
+     * Get the timer results
+     *
+     * @return the timer results
+     */
+    public HashMap<String, Long> getTimerResults() {
+        return timerResults;
+    }
+
+    /**
+     * Set the timer results
+     *
+     * @param timerResults the timer results to set
+     */
+    public void setTimerResults(HashMap<String, Long> timerResults) {
+        this.timerResults = timerResults;
     }
 
     @Override

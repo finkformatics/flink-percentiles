@@ -64,7 +64,17 @@ public class ParamHelper {
                     throw new IllegalArgumentException("Path must start with hdfs://");
                 }
 
-                source = new HdfsSource(env, path, n);
+                if (!params.has("fs-default-name")) {
+                    source = new HdfsSource(env, path, n);
+                } else {
+                    String fsDefaultName = params.get("fs-default-name");
+                    if (!fsDefaultName.startsWith("hdfs://")) {
+                        throw new IllegalArgumentException("FS default name must start with hdfs://");
+                    }
+
+                    source = new HdfsSource(env, path, n, fsDefaultName);
+                }
+
                 break;
             default:
                 throw new IllegalArgumentException("You must provide a source: --source <generator|hdfs>");
