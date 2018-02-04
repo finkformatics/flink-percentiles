@@ -109,6 +109,8 @@ public abstract class AbstractPercentile extends AbstractAlgorithm {
         SourceInterface source = ParamHelper.getSourceFromParams(params, env, n);
         SinkInterface sink = ParamHelper.getSinkFromParams(params);
 
+        ParamHelper.extractParallelismFromParams(params, env);
+
         long t = Long.valueOf(params.get("t", "1000"));
 
         if (t < 100) {

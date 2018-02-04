@@ -85,6 +85,8 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
         SourceInterface source = ParamHelper.getSourceFromParams(params, env, n);
         SinkInterface sink = ParamHelper.getSinkFromParams(params);
 
+        ParamHelper.extractParallelismFromParams(params, env);
+
         if (k < 1 || k > source.getCount()) {
             throw new IllegalArgumentException("k must be between 1 and the value count");
         }
