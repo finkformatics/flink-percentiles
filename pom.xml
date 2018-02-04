@@ -34,7 +34,7 @@ under the License.
         <slf4j.version>1.7.7</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <scala.binary.version>2.10</scala.binary.version>
-        <main.algorithm.class>de.lwerner.flink.percentiles.SequentialPercentile</main.algorithm.class>
+        <main.algorithm.class>de.lwerner.flink.percentiles.SelectionProblem</main.algorithm.class>
     </properties>
 
     <repositories>

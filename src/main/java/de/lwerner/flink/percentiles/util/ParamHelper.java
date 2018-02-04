@@ -12,6 +12,23 @@ import org.apache.flink.api.java.utils.ParameterTool;
 public class ParamHelper {
 
     /**
+     * Set parallelism to execution environment defined by params, default is 8
+     *
+     * @param params the parameter tool from flink api
+     * @param env the execution environment from flink
+     */
+    public static void extractParallelismFromParams(ParameterTool params, ExecutionEnvironment env) {
+        String parallelismString = params.get("parallelism", "8");
+        int parallelism = Integer.valueOf(parallelismString);
+
+        if (parallelism < 1) {
+            throw new IllegalArgumentException("Please provide parallelism greater than 0!");
+        }
+
+        env.setParallelism(parallelism);
+    }
+
+    /**
      * Get the data source from parameters
      *
      * @param params the flink parameter tool
