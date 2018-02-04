@@ -32,8 +32,8 @@ public class ParamHelper {
      * Get the data source from parameters
      *
      * @param params the flink parameter tool
-     * @param env the flink execution environment
-     * @param n number of values to read
+     * @param env    the flink execution environment
+     * @param n      number of values to read
      *
      * @return the concrete data source
      */
@@ -85,12 +85,9 @@ public class ParamHelper {
 
         String dataSink = params.get("sink", "print");
 
-        String fullStr = params.get("full", "false");
-        boolean full = fullStr.equals("true");
-
         switch (dataSink) {
             case "print":
-                sink = new PrintSink(full);
+                sink = new PrintSink();
                 break;
             case "hdfs":
                 String path = params.getRequired("output-path");
@@ -99,11 +96,11 @@ public class ParamHelper {
                 }
 
                 String fsDefaultName = params.getRequired("fs-default-name");
-                if (!path.startsWith("hdfs://")) {
+                if (!fsDefaultName.startsWith("hdfs://")) {
                     throw new IllegalArgumentException("FS default name must start with hdfs://");
                 }
 
-                sink = new HdfsSink(fsDefaultName, path, full);
+                sink = new HdfsSink(fsDefaultName, path);
                 break;
             default:
                 throw new IllegalArgumentException("You must provide an processResult: --processResult <print|hdfs>");

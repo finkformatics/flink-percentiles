@@ -1,6 +1,8 @@
 package de.lwerner.flink.percentiles.data;
 
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
+import org.apache.flink.api.java.DataSet;
+import org.apache.flink.api.java.tuple.Tuple4;
 
 /**
  * Class PrintSink
@@ -9,28 +11,16 @@ import de.lwerner.flink.percentiles.model.ResultReport;
  *
  * @author Lukas Werner
  */
-public class PrintSink implements SinkInterface {
-
-    /**
-     * Full report? Or just the value?
-     */
-    private boolean full;
-
-    /**
-     * Set value for full report or not
-     *
-     * @param full true for full report
-     */
-    public PrintSink(boolean full) {
-        this.full = full;
-    }
+public class PrintSink extends AbstractSink {
 
     @Override
-    public void processResult(ResultReport resultReport) {
-        if (full) {
-            System.out.println(resultReport);
+    public void processResult(Result result) throws Exception {
+        if (result.getSolution() != null) {
+            DataSet<Tuple4<Long, Integer, Long, Float>> resultInformation = solutionDataSetToTuple(result);
+            // Here we just print the result
+            resultInformation.print();
         } else {
-            System.out.println(resultReport.getResults()[0]);
+            System.out.println(result);
         }
     }
 

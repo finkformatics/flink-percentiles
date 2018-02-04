@@ -98,7 +98,7 @@ public abstract class AbstractPercentile extends AbstractAlgorithm {
      * @throws InvocationTargetException if the target isn't able to be invoked
      * @throws InstantiationException if we couldn't instantiate
      */
-    public static <T extends AbstractPercentile> T factory(Class<T> clazz, ParameterTool params, int p) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static <T> T factory(Class<T> clazz, ParameterTool params, int p) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         long n = Long.valueOf(params.getRequired("count"));

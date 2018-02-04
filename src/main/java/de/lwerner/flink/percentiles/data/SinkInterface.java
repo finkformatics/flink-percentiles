@@ -1,8 +1,6 @@
 package de.lwerner.flink.percentiles.data;
 
-import de.lwerner.flink.percentiles.model.ResultReport;
-
-import java.io.IOException;
+import de.lwerner.flink.percentiles.model.Result;
 
 /**
  * Interface SinkInterface
@@ -14,12 +12,12 @@ import java.io.IOException;
 public interface SinkInterface {
 
     /**
-     * Processes a result report
+     * Processes the result
      *
-     * @param resultReport the result report
+     * @param result the result model
      *
-     * @throws IOException sink can be an IO operation, can through an exception though
+     * @throws Exception sink can through an exception
      */
-    void processResult(ResultReport resultReport) throws IOException;
+    void processResult(Result result) throws Exception;
 
 }

@@ -54,7 +54,7 @@ public class TerminationCriterionFilterFunction extends RichFilterFunction<Decis
         long k = decisionModel.getK();
         long n = decisionModel.getN();
 
-        redisAdapter.setNthK(k, 1);
+        redisAdapter.setK(k);
         redisAdapter.setN(n);
         redisAdapter.setNumberOfIterations(getIterationRuntimeContext().getSuperstepNumber());
 

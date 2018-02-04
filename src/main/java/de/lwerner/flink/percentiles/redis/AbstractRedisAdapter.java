@@ -37,35 +37,18 @@ public abstract class AbstractRedisAdapter implements Serializable {
     public abstract void setN(long n);
 
     /**
-     * Adds a new k value
+     * Sets a new k value
      *
      * @param k new k value
      */
-    public abstract void addK(long k);
+    public abstract void setK(long k);
 
     /**
-     * Get the whole k array
+     * Get the value of k
      *
-     * @return all k
+     * @return k
      */
-    public abstract long[] getAllK();
-
-    /**
-     * Get the nth k
-     *
-     * @param n starting at 1
-     *
-     * @return nth k
-     */
-    public abstract long getNthK(int n);
-
-    /**
-     * Set the nth k
-     *
-     * @param k k
-     * @param n nth
-     */
-    public abstract void setNthK(long k, int n);
+    public abstract long getK();
 
     /**
      * Gets the T value (threshold of ending the algorithm)

@@ -2,8 +2,7 @@ package de.lwerner.flink.percentiles;
 
 import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
 import de.lwerner.flink.percentiles.data.*;
-import de.lwerner.flink.percentiles.model.ResultReport;
-import de.lwerner.flink.percentiles.timeMeasurement.Timer;
+import de.lwerner.flink.percentiles.model.Result;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 /**
@@ -34,28 +33,17 @@ public class Percentile extends AbstractPercentile {
         float np = source.getCount() / 100f;
         setK((int)Math.ceil(np * p));
 
-        selectionProblem = new SelectionProblem(source, sink, new long[]{getK()}, t, false);
+        selectionProblem = new SelectionProblem(source, sink, getK(), t, false);
     }
 
     @Override
     public void solve() throws Exception {
-        getSource().getEnv().setParallelism(8);
-
         selectionProblem.solve();
 
-        float result = selectionProblem.getResult();
+        Result result = selectionProblem.getResult();
+        result.setP(getP());
 
-        Timer timer = selectionProblem.getTimer();
-
-        ResultReport resultReport = new ResultReport();
-        resultReport.setTimerResults(timer.getTimerResults());
-        resultReport.setResults(new float[]{result});
-        resultReport.setP(new int[]{getP()});
-        resultReport.setK(new long[]{getK()});
-        resultReport.setT(getT());
-        resultReport.setNumberOfIterations(selectionProblem.getIterationsNeeded());
-
-        getSink().processResult(resultReport);
+        getSink().processResult(result);
     }
 
     /**

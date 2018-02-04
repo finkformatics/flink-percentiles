@@ -16,9 +16,9 @@ import java.lang.reflect.InvocationTargetException;
 public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
 
     /**
-     * The ranks of the searched numbers
+     * The rank of the searched number
      */
-    private long[] k;
+    private long k;
 
     /**
      * A threshold at which we can compute serially
@@ -33,7 +33,7 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
      * @param k the ranks
      * @param t serial computation threshold
      */
-    protected AbstractSelectionProblem(SourceInterface source, SinkInterface sink, long[] k, long t) {
+    protected AbstractSelectionProblem(SourceInterface source, SinkInterface sink, long k, long t) {
         super(source, sink);
 
         this.k = k;
@@ -41,25 +41,12 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
     }
 
     /**
-     * Get the k array
+     * Get the k
      *
-     * @return k array
+     * @return k
      */
-    public long[] getK() {
+    public long getK() {
         return k;
-    }
-
-    /**
-     * Get the first k value in array
-     *
-     * @return first k
-     */
-    public long getFirstK() {
-        if (k.length < 1) {
-            return -1;
-        }
-
-        return k[0];
     }
 
     /**
@@ -87,7 +74,7 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
      * @throws InvocationTargetException if the target isn't able to be invoked
      * @throws InstantiationException if we couldn't instantiate
      */
-    public static <T extends AbstractSelectionProblem> T factory(Class<T> clazz, ParameterTool params, long[] k) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static <T extends AbstractSelectionProblem> T factory(Class<T> clazz, ParameterTool params, long k) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         long n = Long.valueOf(params.getRequired("count"));
@@ -98,10 +85,8 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
         SourceInterface source = ParamHelper.getSourceFromParams(params, env, n);
         SinkInterface sink = ParamHelper.getSinkFromParams(params);
 
-        for (long kVal: k) {
-            if (kVal < 1 || kVal > source.getCount()) {
-                throw new IllegalArgumentException("k must be between 1 and the value count");
-            }
+        if (k < 1 || k > source.getCount()) {
+            throw new IllegalArgumentException("k must be between 1 and the value count");
         }
 
         long t = Long.valueOf(params.get("t", "1000"));
@@ -115,7 +100,7 @@ public abstract class AbstractSelectionProblem extends AbstractAlgorithm {
             AppProperties.setCustomFilePath(propertiesFilePath);
         }
 
-        return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, long[].class, long.class)
+        return clazz.getDeclaredConstructor(SourceInterface.class, SinkInterface.class, long.class, long.class)
                 .newInstance(source, sink, k, t);
     }
 

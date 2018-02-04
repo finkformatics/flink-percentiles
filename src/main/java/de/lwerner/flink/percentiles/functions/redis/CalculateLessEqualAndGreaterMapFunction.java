@@ -37,7 +37,7 @@ public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tup
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(Configuration parameters) {
         Collection<Tuple1<Float>> weightedMedian = getRuntimeContext().getBroadcastVariable("weightedMedian");
 
         for (Tuple1<Float> t: weightedMedian) {
@@ -50,7 +50,7 @@ public class CalculateLessEqualAndGreaterMapFunction extends RichMapFunction<Tup
     }
 
     @Override
-    public Tuple3<Long, Long, Long> map(Tuple1<Float> t) throws Exception {
+    public Tuple3<Long, Long, Long> map(Tuple1<Float> t) {
         return new Tuple3<>(t.f0 < weightedMedian ? 1L : 0L, t.f0 == weightedMedian ? 1L : 0L, t.f0 > weightedMedian ? 1L : 0L);
     }
 

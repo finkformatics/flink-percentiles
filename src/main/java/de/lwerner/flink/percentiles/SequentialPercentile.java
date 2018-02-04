@@ -1,10 +1,11 @@
 package de.lwerner.flink.percentiles;
 
+import de.lwerner.flink.percentiles.algorithm.AbstractAlgorithm;
 import de.lwerner.flink.percentiles.algorithm.AbstractPercentile;
 import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.math.QuickSelect;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
 import org.apache.flink.api.java.utils.ParameterTool;
 
 import java.util.List;
@@ -16,7 +17,10 @@ import java.util.List;
  *
  * @author Lukas Werner
  */
-public class SequentialPercentile extends AbstractPercentile {
+public class SequentialPercentile extends AbstractAlgorithm {
+
+    private int p;
+    private int k;
 
     /**
      * Percentile constructor. Sets all the required values and calculates k from p.
@@ -27,10 +31,24 @@ public class SequentialPercentile extends AbstractPercentile {
      * @param t threshold
      */
     public SequentialPercentile(SourceInterface source, SinkInterface sink, int p, long t) {
-        super(source, sink, p, t);
+        super(source, sink);
+
+        this.p = p;
 
         float np = source.getCount() / 100f; // Might seem too complex, but first lower the number, then multiply
         setK((int)Math.ceil(np * p));
+    }
+
+    public int getP() {
+        return p;
+    }
+
+    public int getK() {
+        return k;
+    }
+
+    public void setK(int k) {
+        this.k = k;
     }
 
     @Override
@@ -40,16 +58,15 @@ public class SequentialPercentile extends AbstractPercentile {
         QuickSelect quickSelect = new QuickSelect();
 
         getTimer().startTimer();
-        float result = quickSelect.select(values, getK() - 1);
+        float resultValue = quickSelect.select(values, getK() - 1);
         getTimer().stopTimer();
 
-        ResultReport resultReport = new ResultReport();
-        resultReport.setTimerResults(getTimer().getTimerResults());
-        resultReport.setResults(new float[]{result});
-        resultReport.setP(new int[]{getP()});
-        resultReport.setK(new long[]{getK()});
+        Result result = new Result();
+        result.setP(getP());
+        result.setK(getK());
+        result.setValue(resultValue);
 
-        getSink().processResult(resultReport);
+        getSink().processResult(result);
     }
 
     /**
@@ -65,7 +82,7 @@ public class SequentialPercentile extends AbstractPercentile {
 
         int p = Integer.valueOf(params.getRequired("p"));
 
-        SequentialPercentile algorithm = factory(SequentialPercentile.class, params, p);
+        SequentialPercentile algorithm = AbstractPercentile.factory(SequentialPercentile.class, params, p);
         algorithm.solve();
     }
 

@@ -5,16 +5,13 @@ import de.lwerner.flink.percentiles.data.SinkInterface;
 import de.lwerner.flink.percentiles.data.SourceInterface;
 import de.lwerner.flink.percentiles.functions.CalculateWeightedMedianGroupReduceFunction;
 import de.lwerner.flink.percentiles.functions.join.*;
-import de.lwerner.flink.percentiles.math.QuickSelect;
-import de.lwerner.flink.percentiles.model.ResultReport;
+import de.lwerner.flink.percentiles.model.Result;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.operators.IterativeDataSet;
 import org.apache.flink.api.java.tuple.*;
 import org.apache.flink.api.java.utils.ParameterTool;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * An algorithm for the selection problem. The ladder is the problem to find the kth smallest element in an unordered
@@ -26,11 +23,6 @@ import java.util.stream.Collectors;
 public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
 
     /**
-     * Threshold for sequential computation
-     */
-    public static final long VALUE_COUNT_THRESHOLD = 1000000;
-
-    /**
      * Should we use the sink?
      */
     private boolean useSink;
@@ -38,17 +30,17 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
     /**
      * Store result
      */
-    private float result;
+    private Result result;
 
     /**
      * SelectionProblemWithoutRedis constructor, sets the required values
      *
      * @param source the data source
      * @param sink   the data sink
-     * @param k      the ranks
+     * @param k      the rank
      * @param t      serial computation threshold
      */
-    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long[] k, long t) {
+    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long k, long t) {
         this(source, sink, k, t, true);
     }
 
@@ -57,11 +49,11 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
      *
      * @param source the data source
      * @param sink the data sink
-     * @param k the ranks
+     * @param k the rank
      * @param t serial computation threshold
      * @param useSink use the sink directly
      */
-    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long[] k, long t, boolean useSink) {
+    public SelectionProblemWithoutRedis(SourceInterface source, SinkInterface sink, long k, long t, boolean useSink) {
         super(source, sink, k, t);
 
         this.useSink = useSink;
@@ -72,14 +64,14 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
      *
      * @return result
      */
-    public float getResult() {
+    public Result getResult() {
         return result;
     }
 
     @Override
     public void solve() throws Exception {
         IterativeDataSet<Tuple3<Float, Long, Long>> initial = getSource().getDataSet()
-                .map(new InputToTupleMapFunction(getFirstK(), getSource().getCount()))
+                .map(new InputToTupleMapFunction(getK(), getSource().getCount()))
                 .iterate(1000);
 
         DataSet<Tuple3<Float, Long, Long>> mediansCountsAndN = initial
@@ -98,45 +90,35 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
                 .withBroadcastSet(weightedMedian, "weightedMedian")
                 .reduce(new CalculateLessEqualAndGreaterReduceFunction());
 
-        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> decisionBase = leg
-                .map(new DecideWhatToDoMapFunction())
-                .withBroadcastSet(weightedMedian, "weightedMedian");
+        DataSet<Tuple3<Boolean, Long, Long>> decisionBase = leg
+                .map(new DecideWhatToDoMapFunction());
 
         DataSet<Tuple3<Float, Long, Long>> iteration = initial
-                .filter(new DiscardValuesFlatMapFunction())
+                .flatMap(new DiscardValuesFlatMapFunction())
                 .withBroadcastSet(decisionBase, "decisionBase")
                 .withBroadcastSet(weightedMedian, "weightedMedian");
 
-        // TODO: Problem: How to conditionally reduce to 1 element, if the weighted median is the found result
+        // Please note: The advantage of the algorithm, to stop when the result was found already, cannot be applied here
 
-        DataSet<Tuple5<Boolean, Boolean, Float, Long, Long>> terminationCriterion = decisionBase
-                .filter(new TerminationCriterionFilterFunction(VALUE_COUNT_THRESHOLD));
+        DataSet<Tuple3<Boolean, Long, Long>> terminationCriterion = decisionBase
+                .filter(new TerminationCriterionFilterFunction(getT()));
 
         DataSet<Tuple3<Float, Long, Long>> remaining = initial.closeWith(iteration, terminationCriterion);
 
-        remaining.print();
+        DataSet<Tuple1<Float>> solution = remaining
+                .partitionByHash(0).setParallelism(1)
+                .sortPartition(0, Order.ASCENDING).setParallelism(1)
+                .mapPartition(new SolveRemainingMapPartition()).setParallelism(1)
+                .map((MapFunction<Tuple3<Float, Long, Long>, Tuple1<Float>>) value -> new Tuple1<>(value.f0));
 
-//        List<Tuple3<Float, Long, Long>> remainingValues = remaining.collect();
-//
-//        List<Float> values = remainingValues.stream().map(t -> t.f0).collect(Collectors.toList());
-//        long k = remainingValues.get(0).f1;
+        result = new Result();
+        result.setSolution(solution);
+        result.setK(getK());
+        result.setT(getT());
 
-        // TODO: Catch the case if we have an empty list
-
-//        System.out.println(remainingValues.get(0));
-//        System.out.println(k);
-//
-//        QuickSelect quickSelect = new QuickSelect();
-//        result = quickSelect.select(values, (int)k - 1);
-//
-//        if (useSink) {
-//            ResultReport resultReport = new ResultReport();
-//            resultReport.setK(getK());
-//            resultReport.setResults(new float[]{result});
-//
-//            // Sink for the result
-//            getSink().processResult(resultReport);
-//        }
+        if (useSink) {
+            getSink().processResult(result);
+        }
     }
 
     /**
@@ -152,7 +134,7 @@ public class SelectionProblemWithoutRedis extends AbstractSelectionProblem {
 
         long k = Long.valueOf(params.getRequired("k"));
 
-        SelectionProblemWithoutRedis algorithm = factory(SelectionProblemWithoutRedis.class, params, new long[]{k});
+        SelectionProblemWithoutRedis algorithm = factory(SelectionProblemWithoutRedis.class, params, k);
         algorithm.solve();
     }
 

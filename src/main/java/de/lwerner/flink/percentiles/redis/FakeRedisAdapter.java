@@ -1,7 +1,5 @@
 package de.lwerner.flink.percentiles.redis;
 
-import java.util.ArrayList;
-
 /**
  * A fake redis adapter, which simulates the behaviour on single node environments
  *
@@ -21,7 +19,7 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     /**
      * k
      */
-    private ArrayList<Long> k;
+    private long k;
     /**
      * t
      */
@@ -39,15 +37,6 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
      */
     private int iterationCount;
 
-    /**
-     * Constructor.
-     *
-     * Initializes k array list
-     */
-    private FakeRedisAdapter() {
-        k = new ArrayList<>();
-    }
-
     @Override
     public long getN() {
         return n;
@@ -59,33 +48,13 @@ public class FakeRedisAdapter extends AbstractRedisAdapter {
     }
 
     @Override
-    public void addK(long k) {
-        this.k.add(k);
+    public void setK(long k) {
+        this.k = k;
     }
 
     @Override
-    public long[] getAllK() {
-        long[] kValues = new long[k.size()];
-
-        for (int i = 0; i < k.size(); i++) {
-            kValues[i] = k.get(i);
-        }
-
-        return kValues;
-    }
-
-    @Override
-    public long getNthK(int n) {
-        if (k.size() >= n) {
-            return k.get(n - 1);
-        }
-
-        return 0L;
-    }
-
-    @Override
-    public void setNthK(long k, int n) {
-        this.k.set(n - 1, k);
+    public long getK() {
+        return k;
     }
 
     @Override
